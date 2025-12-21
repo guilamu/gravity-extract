@@ -313,5 +313,6 @@ Contributions are welcome! Please:
 
 ---
 
-<p style="text-align:center;">**Made with ❤️ for the WordPress community**</p>
+**Made with ❤️ for the WordPress community**
+
 
