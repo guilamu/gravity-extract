@@ -50,7 +50,7 @@ Gravity Extract is a WordPress plugin that integrates with Gravity Forms to auto
 | WordPress | 5.0+ |
 | Gravity Forms | 2.5+ |
 | PHP | 7.4+ |
-| PHP Extensions | GD (required), Imagick (for PDF) |
+| PHP Extensions | Imagick (for PDF) |
 
 ### Optional (recommended)
 - **Imagick PHP extension** - for PDF to JPEG conversion
