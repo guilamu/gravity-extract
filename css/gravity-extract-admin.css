@@ -15,7 +15,7 @@
 .gravity_extract_model_setting .section_label,
 .gravity_extract_mapping_profile_setting .section_label,
 .gravity_extract_field_mappings_setting .section_label {
-    font-weight: 600;
+    font-weight: 400;
     margin-bottom: 8px;
     display: block;
 }
