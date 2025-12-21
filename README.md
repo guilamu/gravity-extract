@@ -29,12 +29,6 @@ Gravity Extract is a WordPress plugin that integrates with Gravity Forms to auto
 - Smart field detection for invoices, receipts, and general documents
 - Returns clean JSON for reliable field population
 
-### ✂️ Automatic Document Cropping
-- **OpenCV** (Python) for high-accuracy edge detection
-- **GD fallback** for servers without Python
-- Automatically straightens and crops document photos
-- Removes backgrounds and perspective distortion
-
 ### 🔗 Field Mapping
 - Map extracted data to any Gravity Forms field type
 - Support for complex fields: Address (with sub-fields), Date, Time, Dropdown
@@ -59,7 +53,6 @@ Gravity Extract is a WordPress plugin that integrates with Gravity Forms to auto
 | PHP Extensions | GD (required), Imagick (for PDF) |
 
 ### Optional (recommended)
-- **Python 3** with OpenCV - for advanced document cropping
 - **Imagick PHP extension** - for PDF to JPEG conversion
 
 ---
@@ -100,14 +93,12 @@ Navigate to **Settings → Gravity Extract** in WordPress admin:
 |---------|-------------|
 | **POE API Key** | Your POE API key for AI model access |
 | **Default Model** | AI model to use (default: `Gemini-3.0-Flash`) |
-| **Auto-Crop Method** | `auto`, `opencv`, `gd_only`, or `disabled` |
 
 ### 3. Field Settings
 In the Gravity Forms editor, add a **Gravity Extract** field and configure:
 
 - **API Key** (override global setting)
 - **AI Model** (override global setting)
-- **Auto-Crop** - Enable/disable document cropping
 - **Field Mappings** - Map extracted data to form fields
 
 ---
@@ -201,20 +192,6 @@ sudo nano /etc/ImageMagick-6/policy.xml
 
 sudo systemctl restart apache2
 ```
-
-### OpenCV Auto-Crop
-For best cropping results, install Python with OpenCV:
-
-```bash
-# Debian/Ubuntu
-sudo apt-get install python3 python3-opencv python3-numpy
-
-# Verify installation
-python3 -c "import cv2; print(cv2.__version__)"
-```
-
-The plugin auto-detects OpenCV availability and falls back to GD if unavailable.
-
 ---
 
 ## 📁 File Structure
@@ -232,7 +209,6 @@ gravity-extract/
 ├── css/
 │   ├── gravity-extract-admin.css       # Admin styles
 │   └── gravity-extract-frontend.css    # Frontend styles
-├── document_crop.py             # OpenCV document cropping
 └── README.md
 ```
 
@@ -268,11 +244,6 @@ add_filter('gravity_extract_data', function($data, $form_id, $field_id) {
 - Verify field mappings are correctly configured
 - Check browser console for JavaScript errors
 - Enable WordPress debug logging
-
-### Auto-Crop Not Working
-- Check if OpenCV is installed: `python3 -c "import cv2"`
-- Fall back to GD in settings if Python unavailable
-- Check file permissions on `document_crop.py`
 
 ### Debug Logging
 Enable WordPress debug logging to troubleshoot:
@@ -330,7 +301,6 @@ Contributions are welcome! Please:
 
 - [Gravity Forms](https://www.gravityforms.com/) - Form plugin for WordPress
 - [POE](https://poe.com/) - AI API platform
-- [OpenCV](https://opencv.org/) - Computer vision library
 
 ---
 
