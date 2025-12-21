@@ -73,9 +73,6 @@ class Gravity_Extract
         add_action('wp_ajax_nopriv_gravity_extract_upload_file', array($this, 'ajax_upload_file'));
         add_action('wp_ajax_gravity_extract_automap_fields', array($this, 'ajax_automap_fields'));
 
-        // Pre-submission hook for auto-crop
-        add_filter('gform_pre_submission', array($this, 'process_auto_crop'));
-
         // Field settings
         add_action('gform_field_standard_settings', array($this, 'field_settings'), 10, 2);
         add_action('gform_field_advanced_settings', array($this, 'field_advanced_settings'), 10, 2);
@@ -286,19 +283,7 @@ class Gravity_Extract
                     <?php esc_html_e('Select a mapping profile above to configure field mappings.', 'gravity-extract'); ?>
                 </p>
             </div>
-        </li>
-
-        <li class="gravity_extract_auto_crop_setting field_setting">
-            <input type="checkbox" id="gravity_extract_auto_crop"
-                onclick="SetFieldProperty('gravityExtractAutoCrop', this.checked);" />
-            <label for="gravity_extract_auto_crop" class="inline">
-                <?php esc_html_e('Enable auto-crop document', 'gravity-extract'); ?>
-            </label>
-            <p class="description">
-                <?php esc_html_e('Uses OpenCV if available, falls back to basic GD cropping otherwise.', 'gravity-extract'); ?>
-            </p>
-        </li>
-        <?php
+            <?php
     }
 
     /**
@@ -427,7 +412,7 @@ class Gravity_Extract
         $keys_to_extract = array_keys($mappings);
 
         if (empty($keys_to_extract)) {
-            // No fields mapped, likely user only wants auto-crop or file upload
+            // No fields mapped, likely user only wants file upload
             wp_send_json_success(array(
                 'extracted_data' => array(),
                 'mappings' => array(),
@@ -502,64 +487,6 @@ class Gravity_Extract
             } else {
                 error_log('Gravity Extract: PDF conversion failed');
                 wp_send_json_error(array('message' => __('PDF conversion failed. Please try uploading an image instead.', 'gravity-extract')));
-                return;
-            }
-        }
-
-
-        // Check if auto-crop is enabled for this field
-        if ($form_id && $field_id && !$converted_from_pdf) {
-            $form = GFAPI::get_form($form_id);
-            if ($form) {
-                $field = GFFormsModel::get_field($form, $field_id);
-                if ($field && !empty($field->gravityExtractAutoCrop)) {
-                    error_log('Gravity Extract: Auto-crop enabled for field ' . $field_id);
-
-                    // Process auto-crop
-                    $cropped_file = $upload['file'] . '_cropped';
-                    $crop_method = self::detect_autocrop_method();
-                    $crop_setting = get_option('gravity_extract_crop_method', 'auto');
-                    $success = false;
-                    $method_used = 'none';
-
-                    error_log(sprintf('Gravity Extract: Auto-crop processing. Method: %s, Setting: %s', $crop_method, $crop_setting));
-
-                    // Try OpenCV first (unless gd_only)
-                    if ($crop_setting !== 'gd_only' && $crop_method === 'opencv') {
-                        $success = $this->crop_with_opencv($upload['file'], $cropped_file);
-                        if ($success) {
-                            $method_used = 'opencv';
-                        }
-                    }
-
-                    // Try GD fallback (unless opencv_only)
-                    if (!$success && $crop_setting !== 'opencv_only') {
-                        if (extension_loaded('gd')) {
-                            // GD modifies in place
-                            $success = self::gd_autocrop_fallback($upload['file']);
-                            if ($success) {
-                                $method_used = 'gd';
-                            }
-                        }
-                    }
-
-                    // If OpenCV succeeded, replace original with cropped
-                    if ($success && $method_used === 'opencv' && file_exists($cropped_file)) {
-                        if (rename($cropped_file, $upload['file'])) {
-                            error_log('Gravity Extract: Auto-crop successful using ' . $method_used);
-                            // Update URL to reflect cropped image
-                            $upload['url'] = str_replace(basename($upload['url']), basename($upload['file']), $upload['url']);
-                        } else {
-                            error_log('Gravity Extract: Failed to replace with cropped file');
-                            @unlink($cropped_file);
-                        }
-                    } elseif ($success && $method_used === 'gd') {
-                        error_log('Gravity Extract: Auto-crop successful using GD');
-                    } else {
-                        error_log('Gravity Extract: Auto-crop failed, using original image');
-                        @unlink($cropped_file);
-                    }
-                }
             }
         }
 
@@ -684,175 +611,6 @@ class Gravity_Extract
         wp_send_json_success(array('mappings' => $mappings));
     }
 
-    /**
-     * Process auto-crop on form submission
-     */
-    public function process_auto_crop($form)
-    {
-        foreach ($form['fields'] as $field) {
-            if ($field->type !== 'gravity_extract') {
-                continue;
-            }
-
-            // Check if auto-crop is enabled for this field
-            if (empty($field->gravityExtractAutoCrop)) {
-                continue;
-            }
-
-            $input_name = 'input_' . $field->id;
-            if (!isset($_FILES[$input_name]) || $_FILES[$input_name]['error'] !== UPLOAD_ERR_OK) {
-                continue;
-            }
-
-            $tmp_file = $_FILES[$input_name]['tmp_name'];
-            $cropped_file = $tmp_file . '_cropped';
-            $crop_method = self::detect_autocrop_method();
-            $crop_setting = get_option('gravity_extract_crop_method', 'auto');
-            $success = false;
-            $method_used = 'none';
-
-            error_log(sprintf('Gravity Extract: Processing auto-crop for field %d. Method detected: %s, Setting: %s', $field->id, $crop_method, $crop_setting));
-            error_log('Gravity Extract: Temp file: ' . $tmp_file);
-
-            // Cascading fallback logic
-            if ($crop_setting === 'disabled') {
-                error_log('Gravity Extract: Auto-crop disabled by setting');
-                continue;
-            }
-
-            // Try OpenCV first (unless gd_only)
-            if ($crop_setting !== 'gd_only' && $crop_method === 'opencv') {
-                $success = $this->crop_with_opencv($tmp_file, $cropped_file);
-                if ($success) {
-                    $method_used = 'opencv';
-                }
-            }
-
-            // Try GD fallback (unless opencv_only)
-            if (!$success && $crop_setting !== 'opencv_only') {
-                if (extension_loaded('gd')) {
-                    $success = self::gd_autocrop_fallback($tmp_file);
-                    if ($success) {
-                        $method_used = 'gd';
-                    }
-                }
-            }
-
-            // Apply filter hook for customization
-            $tmp_file = apply_filters('gform_invoice_extract_cropped_image', $tmp_file, $field, $method_used, $success);
-
-            if ($success && $method_used === 'opencv' && file_exists($cropped_file)) {
-                if (rename($cropped_file, $tmp_file)) {
-                    error_log('Gravity Extract: Successfully cropped using ' . $method_used . ' for field ' . $field->id);
-                } else {
-                    error_log('Gravity Extract: Failed to replace temp file');
-                    @unlink($cropped_file);
-                }
-            } elseif ($success && $method_used === 'gd') {
-                error_log('Gravity Extract: Successfully cropped using GD for field ' . $field->id);
-            } else {
-                error_log('Gravity Extract: Auto-crop failed, using original for field ' . $field->id);
-                @unlink($cropped_file);
-            }
-        }
-
-        return $form;
-    }
-
-    /**
-     * Crop image using OpenCV Python script
-     */
-    private function crop_with_opencv($input_file, $output_file)
-    {
-        $script_path = GRAVITY_EXTRACT_PATH . 'document_crop.py';
-
-        if (!file_exists($script_path)) {
-            error_log('Gravity Extract: document_crop.py not found');
-            return false;
-        }
-
-        $command = sprintf(
-            'python3 %s %s %s 2>&1',
-            escapeshellarg($script_path),
-            escapeshellarg($input_file),
-            escapeshellarg($output_file)
-        );
-
-        $output = shell_exec($command);
-
-        if (file_exists($output_file)) {
-            return true;
-        }
-
-        error_log('Gravity Extract: OpenCV failed. Output: ' . trim($output));
-        return false;
-    }
-
-    /**
-     * GD-based auto-crop fallback
-     */
-    public static function gd_autocrop_fallback($file_path)
-    {
-        if (!file_exists($file_path) || !is_writable($file_path)) {
-            error_log('Gravity Extract: GD - file not writable: ' . $file_path);
-            return false;
-        }
-
-        $mime = mime_content_type($file_path);
-        $image = null;
-
-        switch ($mime) {
-            case 'image/jpeg':
-                $image = @imagecreatefromjpeg($file_path);
-                break;
-            case 'image/png':
-                $image = @imagecreatefrompng($file_path);
-                break;
-            case 'image/webp':
-                if (function_exists('imagecreatefromwebp')) {
-                    $image = @imagecreatefromwebp($file_path);
-                }
-                break;
-            default:
-                error_log('Gravity Extract: GD - unsupported format: ' . $mime);
-                return false;
-        }
-
-        if (!$image) {
-            error_log('Gravity Extract: GD - failed to load image');
-            return false;
-        }
-
-        $cropped = imagecropauto($image, IMG_CROP_DEFAULT);
-        if ($cropped === false) {
-            $cropped = imagecropauto($image, IMG_CROP_THRESHOLD, 0.5, 16777215);
-        }
-
-        if ($cropped === false) {
-            imagedestroy($image);
-            return false;
-        }
-
-        $success = false;
-        switch ($mime) {
-            case 'image/jpeg':
-                $success = imagejpeg($cropped, $file_path, 90);
-                break;
-            case 'image/png':
-                $success = imagepng($cropped, $file_path, 9);
-                break;
-            case 'image/webp':
-                if (function_exists('imagewebp')) {
-                    $success = imagewebp($cropped, $file_path, 90);
-                }
-                break;
-        }
-
-        imagedestroy($image);
-        imagedestroy($cropped);
-
-        return $success;
-    }
 
     /**
      * Optimize image for AI analysis
@@ -1038,56 +796,6 @@ class Gravity_Extract
             error_log('Gravity Extract: PDF conversion failed - ' . $e->getMessage());
             return false;
         }
-    }
-
-    /**
-     * Detect available auto-crop method (cached)
-     */
-    public static function detect_autocrop_method()
-    {
-        $cached = get_transient('gravity_extract_crop_method');
-        if ($cached !== false) {
-            return $cached;
-        }
-
-        $method = 'none';
-
-        $python_version = @shell_exec('python3 --version 2>&1');
-        if ($python_version && strpos($python_version, 'Python') !== false) {
-            $cv2_check = @shell_exec('python3 -c "import cv2" 2>&1');
-            if (empty($cv2_check) || (strpos($cv2_check, 'Error') === false && strpos($cv2_check, 'No module') === false)) {
-                $method = 'opencv';
-            }
-        }
-
-        if ($method === 'none' && extension_loaded('gd')) {
-            $method = 'gd';
-        }
-
-        set_transient('gravity_extract_crop_method', $method, HOUR_IN_SECONDS);
-        return $method;
-    }
-
-    /**
-     * Get available methods status
-     */
-    public static function get_crop_methods_status()
-    {
-        $opencv_available = false;
-        $gd_available = extension_loaded('gd');
-
-        $python_version = @shell_exec('python3 --version 2>&1');
-        if ($python_version && strpos($python_version, 'Python') !== false) {
-            $cv2_check = @shell_exec('python3 -c "import cv2" 2>&1');
-            if (empty($cv2_check) || (strpos($cv2_check, 'Error') === false && strpos($cv2_check, 'No module') === false)) {
-                $opencv_available = true;
-            }
-        }
-
-        return array(
-            'opencv' => $opencv_available,
-            'gd' => $gd_available,
-        );
     }
 }
 
