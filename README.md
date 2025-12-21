@@ -165,6 +165,15 @@ The AI extracts the following data categories:
 | `tip_amount` | Tip/gratuity |
 | `discount_amount` | Discount applied |
 
+### Mileage Expenses (Map Screenshots)
+| Field Key | Description |
+|-----------|-------------|
+| `starting_point` | Departure location |
+| `point_of_arrival` | Arrival location |
+| `trip_length` | Distance (with units stripped) |
+| `toll_amount` | Cost of tolls (numeric) |
+| `gas_amount` | Cost of fuel (numeric) |
+
 ### Items
 | Field Key | Description |
 |-----------|-------------|
