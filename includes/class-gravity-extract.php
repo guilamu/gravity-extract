@@ -269,6 +269,7 @@ class Gravity_Extract
                 <option value="credit_note"><?php esc_html_e('Credit note', 'gravity-extract'); ?></option>
                 <option value="generic_receipt"><?php esc_html_e('Generic receipt', 'gravity-extract'); ?></option>
                 <option value="restaurant_hotel"><?php esc_html_e('Restaurant / Hotel', 'gravity-extract'); ?></option>
+                <option value="mileage_expenses"><?php esc_html_e('Mileage Expenses', 'gravity-extract'); ?></option>
                 <option value="minimal_light"><?php esc_html_e('Minimal (light)', 'gravity-extract'); ?></option>
             </select>
         </li>

@@ -572,6 +572,7 @@ JSON:";
             'credit_note' => 'a credit note',
             'generic_receipt' => 'a receipt',
             'restaurant_hotel' => 'a restaurant or hotel receipt',
+            'mileage_expenses' => 'a map screenshot showing route and distance (like Google Maps or Mappy)',
             'minimal_light' => 'a document (invoice, receipt, or similar)',
         );
 
@@ -595,6 +596,15 @@ JSON:";
 
         if (!empty($regular_keys)) {
             $prompt .= "Extract these specific fields:\n{$keys_list}\n\n";
+
+            if ($profile === 'mileage_expenses') {
+                $prompt .= "Field Guidelines:\n";
+                $prompt .= "- trip_length: The distance NUMBER only (e.g., 145.5). Do NOT include 'km', 'm', or 'miles'. Use dot for decimals.\n";
+                $prompt .= "- gas_amount: Fuel cost NUMBER only (e.g. 9.73). Do NOT include currency symbols or text. Use dot for decimals.\n";
+                $prompt .= "- toll_amount: Toll cost NUMBER only (e.g. 2.00). Do NOT include currency symbols or text. Use dot for decimals.\n";
+                $prompt .= "- starting_point: The departure location city/address.\n";
+                $prompt .= "- point_of_arrival: The destination location city/address.\n\n";
+            }
         }
 
         $prompt .= "Return ONLY valid JSON with the exact keys requested. Use null for any field you cannot find or determine.\n";
