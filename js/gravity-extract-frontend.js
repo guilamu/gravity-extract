@@ -341,6 +341,15 @@
 
             // Standard text/textarea field
             var $targetInput = self.findFormField(formId, fieldId);
+
+            // Check if it's a number field and sanitize
+            if ($fieldContainer.hasClass('field_type_number') ||
+                $fieldContainer.hasClass('gfield_price') ||
+                $fieldContainer.hasClass('gfield_quantity') ||
+                $targetInput.attr('type') === 'number') {
+                value = self.sanitizeNumber(value);
+            }
+
             if ($targetInput.length > 0) {
                 $targetInput.val(value);
                 $targetInput.trigger('change');
@@ -444,6 +453,14 @@
             setTimeout(function () {
                 $field.removeClass('gravity-extract-highlight');
             }, 1500);
+        },
+
+        sanitizeNumber: function (value) {
+            if (typeof value !== 'string') return value;
+            // Remove everything that is not a digit, dot, comma, or minus sign
+            // This strips units like 'km', 'kg', currency symbols, etc.
+            var cleaned = value.replace(/[^0-9.,-]/g, '').trim();
+            return cleaned || value; // Return cleaned value, or original if empty/invalid
         },
 
         findFormField: function (formId, fieldId) {

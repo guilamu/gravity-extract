@@ -116,6 +116,14 @@
             'amount_total_excl_tax',
             'amount_total_incl_tax'
         ],
+        mileage_expenses: [
+            'full_extraction',
+            'starting_point',
+            'point_of_arrival',
+            'trip_length',
+            'toll_amount',
+            'gas_amount'
+        ],
         minimal_light: [
             'full_extraction',
             'document_type',
@@ -192,7 +200,12 @@
         tip_amount: 'Tip Amount',
         document_type: 'Document Type',
         document_number: 'Document Number',
-        document_date: 'Document Date'
+        document_date: 'Document Date',
+        starting_point: 'Starting Point',
+        point_of_arrival: 'Point of Arrival',
+        trip_length: 'Trip Length (km/miles)',
+        toll_amount: 'Toll Amount',
+        gas_amount: 'Gas Amount'
     };
 
     // Wait for GF form editor to be ready
