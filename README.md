@@ -99,7 +99,7 @@ Navigate to **Settings → Gravity Extract** in WordPress admin:
 | Setting | Description |
 |---------|-------------|
 | **POE API Key** | Your POE API key for AI model access |
-| **Default Model** | AI model to use (e.g., `gpt-4o`, `claude-3-5-sonnet`) |
+| **Default Model** | AI model to use (default: `Gemini-3.0-Flash`) |
 | **Auto-Crop Method** | `auto`, `opencv`, `gd_only`, or `disabled` |
 
 ### 3. Field Settings
