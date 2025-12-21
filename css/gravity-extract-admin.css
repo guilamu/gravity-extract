@@ -1,0 +1,127 @@
+/**
+ * Gravity Extract - Admin Styles
+ * Form editor styling for the custom field settings
+ */
+
+/* Field settings container */
+.gravity_extract_api_key_setting,
+.gravity_extract_model_setting,
+.gravity_extract_mapping_profile_setting,
+.gravity_extract_field_mappings_setting {
+    padding: 10px 0;
+}
+
+.gravity_extract_api_key_setting .section_label,
+.gravity_extract_model_setting .section_label,
+.gravity_extract_mapping_profile_setting .section_label,
+.gravity_extract_field_mappings_setting .section_label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* API Key input styling */
+#gravity_extract_api_key {
+    font-family: monospace;
+}
+
+/* Mappings container */
+.gravity-extract-mappings-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    padding: 10px;
+}
+
+.gravity-extract-mappings-container .description {
+    color: #666;
+    font-style: italic;
+    margin: 0;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Mappings table */
+.gravity-extract-mappings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.gravity-extract-mappings-table thead th {
+    background: #f1f1f1;
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+    position: sticky;
+    top: 0;
+}
+
+.gravity-extract-mappings-table tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+.gravity-extract-mappings-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.gravity-extract-mappings-table td {
+    padding: 8px;
+    vertical-align: middle;
+}
+
+.gravity-extract-mappings-table .mapping-key {
+    width: 40%;
+}
+
+.gravity-extract-mappings-table .mapping-key code {
+    display: inline-block;
+    background: #e7e7e7;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #333;
+}
+
+.gravity-extract-mappings-table .mapping-key small {
+    display: block;
+    color: #666;
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.gravity-extract-mappings-table .mapping-target {
+    width: 60%;
+}
+
+.gravity-extract-mapping-select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 13px;
+}
+
+.gravity-extract-mapping-select:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+/* Field icon in form editor sidebar */
+.gfield_icon_gravity_extract::before {
+    content: "\e90c";
+    /* upload icon */
+}
+
+/* File description in form editor */
+.gf_file_description {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+}
