@@ -203,7 +203,7 @@
 
         // Register field settings for gravity_extract
         if (typeof fieldSettings !== 'undefined') {
-            fieldSettings.gravity_extract = '.label_setting, .description_setting, .rules_setting, .admin_label_setting, .label_placement_setting, .description_placement_setting, .css_class_setting, .visibility_setting, .gravity_extract_api_key_setting, .gravity_extract_model_setting, .gravity_extract_target_field_setting, .file_extensions_setting, .gravity_extract_mapping_profile_setting, .gravity_extract_field_mappings_setting, .gravity_extract_auto_crop_setting';
+            fieldSettings.gravity_extract = '.label_setting, .description_setting, .rules_setting, .admin_label_setting, .label_placement_setting, .description_placement_setting, .css_class_setting, .visibility_setting, .gravity_extract_api_key_setting, .gravity_extract_model_setting, .gravity_extract_target_field_setting, .file_extensions_setting, .gravity_extract_mapping_profile_setting, .gravity_extract_field_mappings_setting';
         }
     });
 
@@ -238,8 +238,7 @@
 
         $('#gravity_extract_mapping_profile').val(config.profile || '');
 
-        // Set auto-crop checkbox
-        $('#gravity_extract_auto_crop').prop('checked', field.gravityExtractAutoCrop !== false);
+
 
         // Render mappings table
         gravityExtractRenderMappingsTable(config.profile || '', config.mappings || {});
@@ -397,9 +396,18 @@
                 success: function (response) {
                     if (response.success && response.data.models && response.data.models.length > 0) {
                         var options = '<option value="">' + gravityExtractAdmin.strings.selectModel + '</option>';
+                        var defaultModel = 'Gemini-3.0-Flash'; // Default model
 
                         response.data.models.forEach(function (model) {
-                            var isSelected = selectedModel === model.id ? ' selected' : '';
+                            // Use selected model, or default to Gemini-2.0-Flash if no model selected
+                            var isSelected = '';
+                            if (selectedModel) {
+                                isSelected = selectedModel === model.id ? ' selected' : '';
+                            } else if (model.id === defaultModel) {
+                                isSelected = ' selected';
+                                // Also set the field property
+                                SetFieldProperty('gravityExtractModel', model.id);
+                            }
                             options += '<option value="' + model.id + '"' + isSelected + '>' + model.name + '</option>';
                         });
 

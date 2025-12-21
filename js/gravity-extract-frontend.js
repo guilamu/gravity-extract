@@ -139,7 +139,7 @@
                     console.log('Gravity Extract: Value after 100ms:', $hiddenField.val());
                 }, 100);
 
-                // If server returned extracted data (from analysis after crop), populate fields
+                // If server returned extracted data (from analysis), populate fields
                 if (extractedData && mappings) {
                     console.log('Gravity Extract: Server analyzed the image, populating fields');
                     self.populateMappedFields(gravityExtractFrontend.formId, extractedData, mappings);
