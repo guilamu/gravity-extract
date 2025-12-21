@@ -1,0 +1,250 @@
+/**
+ * Gravity Extract - Frontend Styles
+ * Upload field styling and animations
+ */
+
+/* Field wrapper */
+.gravity-extract-field-wrap {
+    position: relative;
+}
+
+/* Upload zone */
+.gravity-extract-upload-zone {
+    border: 2px dashed #ccc;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.gravity-extract-upload-zone:hover {
+    border-color: #0073aa;
+    background: linear-gradient(135deg, #f0f7ff 0%, #e0ecf5 100%);
+}
+
+.gravity-extract-upload-zone.dragover {
+    border-color: #0073aa;
+    background: linear-gradient(135deg, #e0f0ff 0%, #cce5ff 100%);
+    transform: scale(1.02);
+}
+
+/* Upload icon */
+.gravity-extract-upload-icon {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.gravity-extract-upload-zone:hover .gravity-extract-upload-icon {
+    color: #0073aa;
+}
+
+/* Upload text */
+.gravity-extract-upload-text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.gravity-extract-upload-primary {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.gravity-extract-upload-secondary {
+    font-size: 14px;
+    color: #666;
+}
+
+.gravity-extract-upload-info {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* Hidden file input */
+.gravity-extract-file-input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Preview area */
+.gravity-extract-preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.gravity-extract-preview-image {
+    flex-shrink: 0;
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gravity-extract-preview-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.gravity-extract-preview-info {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.gravity-extract-filename {
+    font-weight: 500;
+    color: #333;
+    word-break: break-all;
+}
+
+.gravity-extract-remove {
+    background: none;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    width: fit-content;
+}
+
+.gravity-extract-remove:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* Status area */
+.gravity-extract-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    margin-top: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.gravity-extract-status.loading {
+    border-color: #0073aa;
+    background: #f0f7ff;
+}
+
+.gravity-extract-status.success {
+    border-color: #28a745;
+    background: #e8f5e9;
+}
+
+.gravity-extract-status.error {
+    border-color: #dc3545;
+    background: #ffeef0;
+}
+
+/* Spinner */
+.gravity-extract-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-top-color: #0073aa;
+    border-radius: 50%;
+    animation: gravity-extract-spin 0.8s linear infinite;
+}
+
+.gravity-extract-status:not(.loading) .gravity-extract-spinner {
+    display: none;
+}
+
+.gravity-extract-status.success .gravity-extract-spinner {
+    display: none;
+}
+
+.gravity-extract-status.error .gravity-extract-spinner {
+    display: none;
+}
+
+@keyframes gravity-extract-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.gravity-extract-status-text {
+    font-size: 14px;
+    color: #333;
+}
+
+.gravity-extract-status.success .gravity-extract-status-text {
+    color: #28a745;
+}
+
+.gravity-extract-status.error .gravity-extract-status-text {
+    color: #dc3545;
+}
+
+/* Success icon */
+.gravity-extract-status.success::before {
+    content: "✓";
+    font-size: 18px;
+    color: #28a745;
+    font-weight: bold;
+}
+
+/* Error icon */
+.gravity-extract-status.error::before {
+    content: "✕";
+    font-size: 18px;
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Target field highlight animation */
+.gravity-extract-highlight {
+    animation: gravity-extract-pulse 0.5s ease-in-out 3;
+}
+
+@keyframes gravity-extract-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 115, 170, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.3);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .gravity-extract-preview {
+        flex-direction: column;
+    }
+
+    .gravity-extract-preview-image {
+        width: 100%;
+        height: 150px;
+    }
+
+    .gravity-extract-upload-zone {
+        padding: 30px 15px;
+    }
+}
