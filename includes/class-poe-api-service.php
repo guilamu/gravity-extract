@@ -647,4 +647,137 @@ JSON:";
         }
         return $extracted;
     }
+
+    /**
+     * Detect extractable fields from a document image using AI
+     *
+     * @param string $api_key POE API key
+     * @param string $model AI model to use
+     * @param string $image_base64 Base64 encoded image
+     * @return array|WP_Error Array of detected fields or error
+     */
+    public static function detect_document_fields($api_key, $model, $image_base64)
+    {
+        if (empty($api_key)) {
+            return new WP_Error('no_api_key', __('API key is required', 'gravity-extract'));
+        }
+
+        if (empty($model)) {
+            return new WP_Error('no_model', __('AI model is required', 'gravity-extract'));
+        }
+
+        if (empty($image_base64)) {
+            return new WP_Error('no_image', __('Image data is required', 'gravity-extract'));
+        }
+
+        error_log('Gravity Extract: Detecting document fields with AI');
+
+        // Build prompt for field discovery
+        $prompt = "You are an expert at analyzing documents and extracting data fields.
+
+Examine this image carefully and identify ALL data fields that could be extracted from this type of document.
+
+For each field you detect, provide:
+1. A snake_case key name (e.g., 'invoice_number', 'vendor_name', 'total_amount')
+2. A human-readable label in English (e.g., 'Invoice Number', 'Vendor Name', 'Total Amount')
+
+Include ALL visible and inferable fields such as:
+- Names (company names, person names, etc.)
+- Addresses (full address, street, city, postal code, country)
+- Dates (invoice date, due date, order date, etc.)
+- Reference numbers (invoice number, order number, customer ID, etc.)
+- Financial amounts (subtotal, tax, total, discounts, etc.)
+- Contact info (phone, email, website)
+- Any other relevant data points
+
+Return ONLY a valid JSON array with NO additional text or markdown:
+[
+  {\"key\": \"vendor_name\", \"label\": \"Vendor Name\"},
+  {\"key\": \"invoice_number\", \"label\": \"Invoice Number\"},
+  {\"key\": \"invoice_date\", \"label\": \"Invoice Date\"},
+  {\"key\": \"total_amount\", \"label\": \"Total Amount\"}
+]";
+
+        // Build multimodal message content
+        $message_content = array(
+            array(
+                'type' => 'text',
+                'text' => $prompt,
+            ),
+            array(
+                'type' => 'image_url',
+                'image_url' => array(
+                    'url' => 'data:image/jpeg;base64,' . $image_base64,
+                ),
+            ),
+        );
+
+        $payload = array(
+            'model' => $model,
+            'messages' => array(
+                array(
+                    'role' => 'user',
+                    'content' => $message_content
+                )
+            ),
+            'temperature' => 0.2,
+            'max_tokens' => 2000,
+        );
+
+        $response = wp_remote_post(self::API_BASE_URL . '/v1/chat/completions', array(
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type' => 'application/json',
+            ),
+            'body' => wp_json_encode($payload),
+            'timeout' => 90,
+            'sslverify' => false,
+        ));
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        if ($status_code !== 200) {
+            $body = wp_remote_retrieve_body($response);
+            error_log('Gravity Extract POE API Error: ' . $body);
+            return new WP_Error('api_error', sprintf(__('API returned status %d', 'gravity-extract'), $status_code));
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        if (isset($body['choices'][0]['message']['content'])) {
+            $content = $body['choices'][0]['message']['content'];
+
+            // Parse JSON response
+            $content_clean = preg_replace('/^```json\s*|\s*```$/', '', trim($content));
+            $detected_fields = json_decode($content_clean, true);
+
+            if ($detected_fields && is_array($detected_fields)) {
+                error_log('Gravity Extract: Detected ' . count($detected_fields) . ' fields from document');
+                return array(
+                    'success' => true,
+                    'fields' => $detected_fields,
+                );
+            }
+
+            // Try extracting JSON from text
+            if (preg_match('/\[.*\]/s', $content, $matches)) {
+                $detected_fields = json_decode($matches[0], true);
+                if ($detected_fields && is_array($detected_fields)) {
+                    error_log('Gravity Extract: Detected ' . count($detected_fields) . ' fields from document (extracted from text)');
+                    return array(
+                        'success' => true,
+                        'fields' => $detected_fields,
+                    );
+                }
+            }
+
+            error_log('Gravity Extract: Could not parse field detection response: ' . substr($content, 0, 500));
+            return new WP_Error('parse_error', __('Could not parse AI response', 'gravity-extract'));
+        }
+
+        return new WP_Error('invalid_response', __('Invalid API response', 'gravity-extract'));
+    }
 }

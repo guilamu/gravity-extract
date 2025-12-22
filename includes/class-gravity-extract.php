@@ -86,19 +86,21 @@ class Gravity_Extract
      */
     public function enqueue_admin_scripts($hook)
     {
-        if (!in_array($hook, array('toplevel_page_gf_edit_forms', 'forms_page_gf_edit_forms'))) {
-            // Check for form editor
-            $page = rgget('page');
-            $view = rgget('view');
-            if ($page !== 'gf_edit_forms' || $view !== 'settings') {
-                if ($page !== 'gf_edit_forms' || !empty($view)) {
-                    // Not form editor, but check if it's the form list
-                }
-            }
-        }
+        // Check if we're on a Gravity Forms page
+        $page = rgget('page');
+        $view = rgget('view');
+        $subview = rgget('subview');
 
-        // Only load on form editor
-        if (GFForms::get_page() !== 'form_editor') {
+        // Load on form editor
+        $is_form_editor = GFForms::get_page() === 'form_editor';
+
+        // Also load on form settings page (where Gravity Extract settings tab is)
+        $is_form_settings = ($page === 'gf_edit_forms' && $view === 'settings');
+
+        // Also load on general GF admin pages that might need it
+        $is_gf_page = strpos($hook, 'gf_') !== false || strpos($hook, 'gravityforms') !== false;
+
+        if (!$is_form_editor && !$is_form_settings && !$is_gf_page) {
             return;
         }
 

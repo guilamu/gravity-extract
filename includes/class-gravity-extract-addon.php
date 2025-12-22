@@ -65,6 +65,55 @@ class Gravity_Extract_Addon extends GFAddOn
 
         // AJAX handler for fetching models in form settings
         add_action('wp_ajax_gravity_extract_get_models_form_settings', array($this, 'ajax_get_models_for_form_settings'));
+
+        // Add modal HTML to admin footer
+        add_action('admin_footer', array($this, 'render_profile_manager_modal'));
+
+        // Enqueue jQuery UI for sortable
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_profile_manager_scripts'));
+    }
+
+    /**
+     * Enqueue scripts for profile manager
+     */
+    public function enqueue_profile_manager_scripts($hook)
+    {
+        // Only on form settings and form editor pages
+        $is_gf_page = strpos($hook, 'gf_') !== false ||
+            strpos($hook, 'gravityforms') !== false ||
+            (isset($_GET['page']) && strpos($_GET['page'], 'gf_') === 0);
+
+        if (!$is_gf_page) {
+            return;
+        }
+
+        // Enqueue jQuery UI Sortable
+        wp_enqueue_script('jquery-ui-sortable');
+        wp_enqueue_script('jquery-ui-draggable');
+
+        // Add inline script with profile manager data
+        // Attach to the gravity-extract-admin script (already enqueued by class-gravity-extract.php)
+        $profiles_manager = Gravity_Extract_Mapping_Profiles_Manager::get_instance();
+        $custom_profiles = $profiles_manager->get_all_profiles();
+        $master_fields = $profiles_manager->get_master_fields();
+
+        wp_localize_script('gravity-extract-admin', 'gravityExtractProfiles', array(
+            'customProfiles' => $custom_profiles,
+            'masterFields' => $master_fields,
+            'nonce' => wp_create_nonce('gravity_extract_profiles'),
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'i18n' => array(
+                'confirmDelete' => __('Are you sure you want to delete this profile?', 'gravity-extract'),
+                'enterProfileName' => __('Enter profile name:', 'gravity-extract'),
+                'enterNewName' => __('Enter new name for duplicate:', 'gravity-extract'),
+                'profileSaved' => __('Profile saved successfully!', 'gravity-extract'),
+                'profileDeleted' => __('Profile deleted successfully!', 'gravity-extract'),
+                'profileImported' => __('Profile imported successfully!', 'gravity-extract'),
+                'error' => __('An error occurred. Please try again.', 'gravity-extract'),
+                'noFieldsEnabled' => __('Please enable at least one field.', 'gravity-extract'),
+                'nameRequired' => __('Profile name is required.', 'gravity-extract'),
+            )
+        ));
     }
 
     /**
@@ -102,6 +151,18 @@ class Gravity_Extract_Addon extends GFAddOn
                         'html' => '<p class="description">' .
                             esc_html__('After saving the API key, refresh this page to load available AI models.', 'gravity-extract') .
                             '</p>',
+                    ),
+                    array(
+                        'name' => 'gravity_extract_profile_manager',
+                        'type' => 'html',
+                        'html' => '<div class="ge-profile-manager-section">' .
+                            '<hr style="margin: 20px 0;">' .
+                            '<h4>' . esc_html__('Mapping Profiles', 'gravity-extract') . '</h4>' .
+                            '<p class="description">' . esc_html__('Create and manage custom document mapping profiles.', 'gravity-extract') . '</p>' .
+                            '<button type="button" class="button button-secondary" id="ge-open-profile-manager">' .
+                            esc_html__('Manage Mapping Profiles', 'gravity-extract') .
+                            '</button>' .
+                            '</div>',
                     ),
                 ),
             ),
@@ -224,5 +285,137 @@ class Gravity_Extract_Addon extends GFAddOn
 
         $instance = self::get_instance();
         return $instance->get_form_settings($form);
+    }
+
+    /**
+     * Render the profile manager modal HTML
+     */
+    public function render_profile_manager_modal()
+    {
+        // Only render on Gravity Forms admin pages
+        $screen = get_current_screen();
+
+        // Check for GF form editor and settings pages
+        $is_gf_page = false;
+        if ($screen) {
+            $is_gf_page = strpos($screen->id, 'gf_') !== false ||
+                strpos($screen->id, 'gravityforms') !== false ||
+                strpos($screen->id, 'toplevel_page_gf') !== false;
+        }
+
+        // Also check GET params for form settings
+        if (!$is_gf_page && isset($_GET['page']) && strpos($_GET['page'], 'gf_') === 0) {
+            $is_gf_page = true;
+        }
+
+        if (!$is_gf_page) {
+            return;
+        }
+        ?>
+        <!-- Gravity Extract Profile Manager Modal -->
+        <div id="ge-profile-modal-overlay" class="ge-profile-modal-overlay">
+            <div class="ge-profile-modal">
+                <!-- Modal Header -->
+                <div class="ge-modal-header">
+                    <h2 id="ge-modal-title"><?php esc_html_e('Manage Mapping Profiles', 'gravity-extract'); ?></h2>
+                    <button type="button" class="ge-modal-close" id="ge-close-modal"
+                        aria-label="<?php esc_attr_e('Close', 'gravity-extract'); ?>">
+                        <span class="dashicons dashicons-no-alt"></span>
+                    </button>
+                </div>
+
+                <!-- Modal Content -->
+                <div class="ge-modal-content">
+                    <!-- Profile List View -->
+                    <div id="ge-profile-list-view" class="ge-view">
+                        <div class="ge-profile-actions-bar">
+                            <button type="button" class="button button-primary" id="ge-new-profile">
+                                <span class="dashicons dashicons-plus-alt2"></span>
+                                <?php esc_html_e('New Profile', 'gravity-extract'); ?>
+                            </button>
+                            <button type="button" class="button" id="ge-import-profile">
+                                <span class="dashicons dashicons-upload"></span>
+                                <?php esc_html_e('Import', 'gravity-extract'); ?>
+                            </button>
+                            <input type="file" id="ge-import-file" accept=".json" style="display: none;">
+                        </div>
+
+                        <div id="ge-profiles-list" class="ge-profiles-list">
+                            <!-- Profiles will be rendered here by JavaScript -->
+                            <p class="ge-no-profiles">
+                                <?php esc_html_e('No custom profiles yet. Click "New Profile" to create one.', 'gravity-extract'); ?>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Profile Editor View -->
+                    <div id="ge-profile-editor-view" class="ge-view" style="display: none;">
+                        <div class="ge-editor-header">
+                            <button type="button" class="button" id="ge-back-to-list">
+                                <span class="dashicons dashicons-arrow-left-alt"></span>
+                                <?php esc_html_e('Back to List', 'gravity-extract'); ?>
+                            </button>
+                        </div>
+
+                        <div class="ge-profile-name-row">
+                            <label for="ge-profile-name"><?php esc_html_e('Profile Name', 'gravity-extract'); ?></label>
+                            <div class="ge-profile-name-input-row">
+                                <input type="text" id="ge-profile-name" class="regular-text"
+                                    placeholder="<?php esc_attr_e('Enter profile name...', 'gravity-extract'); ?>">
+                                <button type="button" class="button button-secondary" id="ge-detect-fields">
+                                    <?php esc_html_e('Detect available fields from sample', 'gravity-extract'); ?>
+                                    <span id="ge-detect-spinner" class="spinner"></span>
+                                </button>
+                                <input type="file" id="ge-sample-file" accept="image/*,.pdf" style="display: none;">
+                            </div>
+                            <input type="hidden" id="ge-profile-slug" value="">
+                        </div>
+
+                        <div class="ge-fields-columns">
+                            <!-- Available Fields Column -->
+                            <div class="ge-field-column">
+                                <h3><?php esc_html_e('Available Fields', 'gravity-extract'); ?></h3>
+                                <p class="description">
+                                    <?php esc_html_e('Drag fields to the right to enable them', 'gravity-extract'); ?>
+                                </p>
+                                <ul id="ge-available-fields" class="ge-field-list ge-sortable">
+                                    <!-- Fields will be rendered here by JavaScript -->
+                                </ul>
+                            </div>
+
+                            <!-- Enabled Fields Column -->
+                            <div class="ge-field-column">
+                                <h3><?php esc_html_e('Enabled Fields', 'gravity-extract'); ?></h3>
+                                <p class="description">
+                                    <?php esc_html_e('These fields will be extracted from documents', 'gravity-extract'); ?>
+                                </p>
+                                <ul id="ge-enabled-fields" class="ge-field-list ge-sortable">
+                                    <!-- Fields will be rendered here by JavaScript -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="ge-editor-footer">
+                            <button type="button" class="button button-primary button-large" id="ge-save-profile">
+                                <?php esc_html_e('Save Profile', 'gravity-extract'); ?>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Field label edit inline dialog -->
+        <div id="ge-label-edit-dialog" class="ge-label-edit-dialog" style="display: none;">
+            <label><?php esc_html_e('Custom Label:', 'gravity-extract'); ?></label>
+            <input type="text" id="ge-custom-label-input" class="regular-text">
+            <div class="ge-dialog-buttons">
+                <button type="button" class="button button-primary"
+                    id="ge-save-label"><?php esc_html_e('OK', 'gravity-extract'); ?></button>
+                <button type="button" class="button"
+                    id="ge-cancel-label"><?php esc_html_e('Cancel', 'gravity-extract'); ?></button>
+            </div>
+        </div>
+        <?php
     }
 }
