@@ -84,13 +84,15 @@ class Gravity_Extract_Addon extends GFAddOn
                         'type' => 'text',
                         'input_type' => 'password',
                         'class' => 'medium',
-                        'tooltip' => esc_html__('Enter your POE API key. Get one from poe.com/api_key', 'gravity-extract'),
+                        'description' => '<a href="https://poe.com/api_key" target="_blank">' . esc_html__('Get your API key from poe.com', 'gravity-extract') . ' →</a>',
+                        'tooltip' => esc_html__('Enter your POE API key for AI document analysis.', 'gravity-extract'),
                         'feedback_callback' => array($this, 'validate_api_key'),
                     ),
                     array(
                         'name' => 'gravity_extract_model',
                         'label' => esc_html__('AI Model', 'gravity-extract'),
                         'type' => 'select',
+                        'default_value' => 'Gemini-3-Flash',
                         'choices' => $this->get_model_choices($form),
                         'tooltip' => esc_html__('Select the AI model to use for image analysis. Only models that support image input are shown.', 'gravity-extract'),
                     ),
@@ -111,6 +113,7 @@ class Gravity_Extract_Addon extends GFAddOn
      */
     private function get_model_choices($form)
     {
+        $default_model = 'Gemini-3-Flash';
         $choices = array(
             array(
                 'label' => esc_html__('Select a model (save API key first)', 'gravity-extract'),
@@ -121,6 +124,7 @@ class Gravity_Extract_Addon extends GFAddOn
         // Get saved settings
         $settings = $this->get_form_settings($form);
         $api_key = rgar($settings, 'gravity_extract_api_key');
+        $saved_model = rgar($settings, 'gravity_extract_model');
 
         if (!empty($api_key)) {
             // Fetch models from API
@@ -135,10 +139,24 @@ class Gravity_Extract_Addon extends GFAddOn
                     ),
                 );
 
+                $has_default = false;
                 foreach ($models as $model) {
+                    $is_selected = false;
+
+                    // If user has saved a model, use that
+                    if (!empty($saved_model) && $model['id'] === $saved_model) {
+                        $is_selected = true;
+                    }
+                    // Otherwise, default to Gemini-2-Flash
+                    elseif (empty($saved_model) && $model['id'] === $default_model) {
+                        $is_selected = true;
+                        $has_default = true;
+                    }
+
                     $choices[] = array(
                         'label' => $model['name'],
                         'value' => $model['id'],
+                        'isSelected' => $is_selected,
                     );
                 }
             }
