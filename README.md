@@ -35,6 +35,14 @@ Gravity Extract is a WordPress plugin that integrates with Gravity Forms to auto
 - **AI Auto-Mapping**: Automatically suggest best matches between extracted data and form fields
 - **Mapping Profiles**: Save and reuse mapping configurations
 
+### 📝 Custom Mapping Profiles
+- **Create custom profiles** for any document type
+- **AI Field Detection**: Upload a sample document and let AI detect extractable fields
+- Drag-and-drop field ordering in the profile editor
+- Custom field labels for mapped data
+- Import/Export profiles as JSON
+- Duplicate existing profiles as starting points
+
 ### 🎨 Modern UI
 - Clean, responsive upload interface
 - Live preview of uploaded documents
@@ -144,6 +152,19 @@ Once the form is configured, add a **Gravity Extract** field and set:
 | **Bank Details (RIB/Account ID)** | Bank account identification documents (RIB) with IBAN, BIC, and holder info |
 | **Generic Document (Minimal)** | Light extraction for mixed document types with core fields only |
 
+### Custom Mapping Profiles
+Create your own profiles with AI-powered field detection:
+
+1. Go to **Forms → [Form] → Settings → Gravity Extract**
+2. Click **Manage Mapping Profiles**
+3. Click **New Profile**
+4. Enter a profile name
+5. Click **Detect available fields from sample** and upload a sample document
+6. AI analyzes the document and populates **Available Fields**
+7. Drag fields from **Available Fields** to **Enabled Fields**
+8. Optionally edit field labels by double-clicking
+9. Click **Save Profile**
+
 ---
 
 ## 🔧 Extracted Data Fields
@@ -238,17 +259,19 @@ sudo systemctl restart apache2
 
 ```
 gravity-extract/
-├── gravity-extract.php          # Main plugin file
+├── gravity-extract.php              # Main plugin file
 ├── includes/
-│   ├── class-gravity-extract.php       # Core plugin class
+│   ├── class-gravity-extract.php         # Core plugin class
+│   ├── class-gravity-extract-addon.php   # Gravity Forms addon integration
 │   ├── class-gf-field-gravity-extract.php  # Custom GF field
-│   └── class-poe-api-service.php       # POE API integration
+│   ├── class-mapping-profiles-manager.php  # Custom profiles CRUD
+│   └── class-poe-api-service.php         # POE API integration
 ├── js/
-│   ├── gravity-extract-admin.js        # Admin JavaScript
-│   └── gravity-extract-frontend.js     # Frontend JavaScript
+│   ├── gravity-extract-admin.js          # Admin JavaScript
+│   └── gravity-extract-frontend.js       # Frontend JavaScript
 ├── css/
-│   ├── gravity-extract-admin.css       # Admin styles
-│   └── gravity-extract-frontend.css    # Frontend styles
+│   ├── gravity-extract-admin.css         # Admin styles
+│   └── gravity-extract-frontend.css      # Frontend styles
 └── README.md
 ```
 

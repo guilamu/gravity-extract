@@ -60,6 +60,10 @@ function gravity_extract_init()
     // Initialize
     Gravity_Extract::get_instance();
 
+    // Load the mapping profiles manager
+    require_once GRAVITY_EXTRACT_PATH . 'includes/class-mapping-profiles-manager.php';
+    Gravity_Extract_Mapping_Profiles_Manager::get_instance();
+
     // Register the form settings addon
     require_once GRAVITY_EXTRACT_PATH . 'includes/class-gravity-extract-addon.php';
     GFAddOn::register('Gravity_Extract_Addon');
