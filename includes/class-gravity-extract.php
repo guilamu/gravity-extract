@@ -170,18 +170,21 @@ class Gravity_Extract
             if ($field->type === 'gravity_extract') {
                 $config = $field->gravityExtractConfig ? $field->gravityExtractConfig : array();
                 $fields_config[$field->id] = array(
-                    'model' => $field->gravityExtractModel,
-                    'hasApiKey' => !empty($field->gravityExtractApiKey),
                     'profile' => isset($config['profile']) ? $config['profile'] : '',
                     'mappings' => isset($config['mappings']) ? $config['mappings'] : array(),
                 );
             }
         }
 
+        // Get form-level API settings
+        $form_settings = Gravity_Extract_Addon::get_form_extract_settings($form['id']);
+        $has_api_key = !empty($form_settings['gravity_extract_api_key']);
+
         wp_localize_script('gravity-extract-frontend', 'gravityExtractFrontend', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('gravity_extract_frontend'),
             'formId' => $form['id'],
+            'hasApiKey' => $has_api_key,
             'fields' => $fields_config,
             'strings' => array(
                 'uploading' => __('Uploading...', 'gravity-extract'),
@@ -235,27 +238,6 @@ class Gravity_Extract
             return;
         }
         ?>
-        <li class="gravity_extract_api_key_setting field_setting">
-            <label class="section_label" for="gravity_extract_api_key">
-                <?php esc_html_e('POE API Key', 'gravity-extract'); ?>
-                <?php gform_tooltip('gravity_extract_api_key'); ?>
-            </label>
-            <input type="password" id="gravity_extract_api_key" class="fieldwidth-1" style="width: 100%;"
-                onchange="SetFieldProperty('gravityExtractApiKey', this.value);"
-                onkeyup="SetFieldProperty('gravityExtractApiKey', this.value); gravityExtractFetchModels(this.value);" />
-        </li>
-
-        <li class="gravity_extract_model_setting field_setting">
-            <label class="section_label" for="gravity_extract_model">
-                <?php esc_html_e('AI Model', 'gravity-extract'); ?>
-                <?php gform_tooltip('gravity_extract_model'); ?>
-            </label>
-            <select id="gravity_extract_model" class="fieldwidth-3"
-                onchange="SetFieldProperty('gravityExtractModel', this.value);">
-                <option value=""><?php esc_html_e('Enter API key first', 'gravity-extract'); ?></option>
-            </select>
-        </li>
-
         <li class="gravity_extract_mapping_profile_setting field_setting">
             <label class="section_label" for="gravity_extract_mapping_profile">
                 <?php esc_html_e('Mapping Profile', 'gravity-extract'); ?>
@@ -264,13 +246,18 @@ class Gravity_Extract
             <select id="gravity_extract_mapping_profile" class="fieldwidth-3"
                 onchange="gravityExtractOnProfileChange(this.value);">
                 <option value=""><?php esc_html_e('Select a profile', 'gravity-extract'); ?></option>
-                <option value="supplier_invoice"><?php esc_html_e('Supplier invoice (B2B)', 'gravity-extract'); ?></option>
+                <option value="supplier_invoice"><?php esc_html_e('Supplier Invoice (Purchases)', 'gravity-extract'); ?>
+                </option>
                 <option value="sales_invoice"><?php esc_html_e('Sales invoice', 'gravity-extract'); ?></option>
                 <option value="credit_note"><?php esc_html_e('Credit note', 'gravity-extract'); ?></option>
                 <option value="generic_receipt"><?php esc_html_e('Generic receipt', 'gravity-extract'); ?></option>
                 <option value="restaurant_hotel"><?php esc_html_e('Restaurant / Hotel', 'gravity-extract'); ?></option>
-                <option value="mileage_expenses"><?php esc_html_e('Mileage Expenses', 'gravity-extract'); ?></option>
-                <option value="minimal_light"><?php esc_html_e('Minimal (light)', 'gravity-extract'); ?></option>
+                <option value="mileage_expenses"><?php esc_html_e('Mileage Expenses (Route Maps)', 'gravity-extract'); ?>
+                </option>
+                <option value="bank_account_identification">
+                    <?php esc_html_e('Bank Details (RIB/Account ID)', 'gravity-extract'); ?>
+                </option>
+                <option value="minimal_light"><?php esc_html_e('Generic Document (Minimal)', 'gravity-extract'); ?></option>
             </select>
         </li>
 
@@ -390,14 +377,17 @@ class Gravity_Extract
             wp_send_json_error(array('message' => __('Field not found', 'gravity-extract')));
         }
 
-        $api_key = $field->gravityExtractApiKey;
-        $model = $field->gravityExtractModel;
+        // Get API settings from form-level settings
+        $form_settings = Gravity_Extract_Addon::get_form_extract_settings($form_id);
+        $api_key = isset($form_settings['gravity_extract_api_key']) ? $form_settings['gravity_extract_api_key'] : '';
+        $model = isset($form_settings['gravity_extract_model']) ? $form_settings['gravity_extract_model'] : '';
+
         $config = $field->gravityExtractConfig ? $field->gravityExtractConfig : array();
         $profile = isset($config['profile']) ? $config['profile'] : '';
         $mappings = isset($config['mappings']) ? $config['mappings'] : array();
 
         if (empty($api_key) || empty($model)) {
-            wp_send_json_error(array('message' => __('Field not configured properly', 'gravity-extract')));
+            wp_send_json_error(array('message' => __('Form not configured. Please set API Key and Model in Form Settings → Gravity Extract.', 'gravity-extract')));
         }
 
         if (empty($profile)) {
@@ -508,12 +498,14 @@ class Gravity_Extract
                 if ($field && !empty($mappings)) {
                     error_log('Gravity Extract: Field has mappings configured, analyzing image after upload');
 
-                    $api_key = $field->gravityExtractApiKey;
-                    $model = $field->gravityExtractModel;
+                    // Get API settings from form-level settings
+                    $form_settings = Gravity_Extract_Addon::get_form_extract_settings($form_id);
+                    $api_key = isset($form_settings['gravity_extract_api_key']) ? $form_settings['gravity_extract_api_key'] : '';
+                    $model = isset($form_settings['gravity_extract_model']) ? $form_settings['gravity_extract_model'] : '';
                     $profile = isset($config['profile']) ? $config['profile'] : '';
 
                     if (empty($api_key) || empty($model)) {
-                        wp_send_json_error(array('message' => __('Field not configured properly for analysis', 'gravity-extract')));
+                        wp_send_json_error(array('message' => __('Form not configured. Please set API Key and Model in Form Settings → Gravity Extract.', 'gravity-extract')));
                     }
 
                     if (empty($profile)) {
@@ -581,13 +573,25 @@ class Gravity_Extract
             wp_send_json_error(array('message' => __('Unauthorized', 'gravity-extract')));
         }
 
-        $api_key = sanitize_text_field($_POST['api_key'] ?? '');
-        $model = sanitize_text_field($_POST['model'] ?? '');
+        // Get form_id to fetch API settings from form settings
+        $form_id = intval($_POST['form_id'] ?? 0);
+
+        // Get API settings from form settings
+        if ($form_id) {
+            $form_settings = Gravity_Extract_Addon::get_form_extract_settings($form_id);
+            $api_key = isset($form_settings['gravity_extract_api_key']) ? $form_settings['gravity_extract_api_key'] : '';
+            $model = isset($form_settings['gravity_extract_model']) ? $form_settings['gravity_extract_model'] : '';
+        } else {
+            // Fallback to POST values (shouldn't happen with form-level settings)
+            $api_key = sanitize_text_field($_POST['api_key'] ?? '');
+            $model = sanitize_text_field($_POST['model'] ?? '');
+        }
+
         $keys = isset($_POST['keys']) ? array_map('sanitize_text_field', $_POST['keys']) : array();
         $form_fields = isset($_POST['form_fields']) ? $_POST['form_fields'] : array();
 
         if (empty($api_key) || empty($model)) {
-            wp_send_json_error(array('message' => __('API key and Model are required', 'gravity-extract')));
+            wp_send_json_error(array('message' => __('Please configure API Key and Model in Form Settings → Gravity Extract first.', 'gravity-extract')));
         }
 
         if (empty($keys) || empty($form_fields)) {

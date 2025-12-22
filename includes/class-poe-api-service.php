@@ -573,6 +573,7 @@ JSON:";
             'generic_receipt' => 'a receipt',
             'restaurant_hotel' => 'a restaurant or hotel receipt',
             'mileage_expenses' => 'a map screenshot showing route and distance (like Google Maps or Mappy)',
+            'bank_account_identification' => 'a bank account identification document (RIB - Relevé d\'Identité Bancaire) containing account holder and bank details',
             'minimal_light' => 'a document (invoice, receipt, or similar)',
         );
 
@@ -604,6 +605,15 @@ JSON:";
                 $prompt .= "- toll_amount: Toll cost NUMBER only (e.g. 2.00). Do NOT include currency symbols or text. Use dot for decimals.\n";
                 $prompt .= "- starting_point: The departure location city/address.\n";
                 $prompt .= "- point_of_arrival: The destination location city/address.\n\n";
+            }
+
+            if ($profile === 'bank_account_identification') {
+                $prompt .= "Field Guidelines:\n";
+                $prompt .= "- bank_IBAN: The full IBAN including country code (e.g., FR76 1234 5678 9012 3456 7890 123).\n";
+                $prompt .= "- bank_BIC: The BIC/SWIFT code (8 or 11 characters, e.g., BNPAFRPP).\n";
+                $prompt .= "- bank_user_id_gender: Extract as 'M', 'F', 'Mr', 'Mrs', or 'Ms' if visible.\n";
+                $prompt .= "- bank_user_id_first_name: The account holder's first name.\n";
+                $prompt .= "- bank_user_id_last_name: The account holder's last name/surname.\n\n";
             }
         }
 
