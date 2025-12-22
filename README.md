@@ -23,7 +23,7 @@ Gravity Extract is a WordPress plugin that integrates with Gravity Forms to auto
 - Real-time upload progress with visual feedback
 
 ### 🤖 AI-Powered Extraction
-- **Free to use** with [POE](https://poe.com) API (account required)
+- **Free to use** with POE API (account required)
 - Access to multiple vision models: GPT-4o, Claude, Gemini, and more
 - Extracts structured data: merchant details, dates, amounts, addresses, line items
 - Smart field detection for invoices, receipts, and general documents
@@ -85,14 +85,10 @@ unzip gravity-extract.zip
 
 ### 1. Create a POE Account (Required)
 
-> ⚠️ **A [POE](https://poe.com) account is mandatory** for this plugin to work. POE provides free access to AI models.
-
 1. Go to **[poe.com](https://poe.com)** and create a free account (or sign in)
 2. Navigate to **Settings → API Keys** (or visit [poe.com/api_key](https://poe.com/api_key))
 3. Create a new API key
 4. Copy the key to use in the plugin settings
-
-> 💡 The free POE API tier includes generous usage limits for personal and small business use.
 
 ### 2. Form Settings
 Configure the API key and AI model **per form** in the Gravity Forms editor:
@@ -370,3 +366,4 @@ Contributions are welcome! Please:
 <p align="center">
   Made with ❤️ for the WordPress community
 </p>
+
