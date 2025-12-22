@@ -283,12 +283,22 @@
     function gravityExtractRenderMappingsTable(profile, mappings) {
         var $container = $('#gravity_extract_mappings_container');
 
-        if (!profile || !invoiceMappingProfiles[profile]) {
+        // Check built-in profiles first, then custom profiles from ProfileManager
+        var keys = null;
+        if (invoiceMappingProfiles[profile]) {
+            keys = invoiceMappingProfiles[profile];
+        } else if (typeof gravityExtractProfiles !== 'undefined' &&
+            gravityExtractProfiles.customProfiles &&
+            gravityExtractProfiles.customProfiles[profile]) {
+            // Custom profile - get keys from the fields object
+            keys = Object.keys(gravityExtractProfiles.customProfiles[profile].fields || {});
+        }
+
+        if (!profile || !keys || keys.length === 0) {
             $container.html('<p class="description">Select a mapping profile above to configure field mappings.</p>');
             return;
         }
 
-        var keys = invoiceMappingProfiles[profile];
         var formFields = getFormFieldsForMapping();
 
         var html = '<div style="margin-bottom: 5px; position: relative;">';
@@ -299,8 +309,20 @@
         html += '<thead><tr><th>Extracted Field</th><th>Target Form Field</th></tr></thead>';
         html += '<tbody>';
 
+        // Get custom profile fields for label lookup
+        var customFields = null;
+        if (typeof gravityExtractProfiles !== 'undefined' &&
+            gravityExtractProfiles.customProfiles &&
+            gravityExtractProfiles.customProfiles[profile]) {
+            customFields = gravityExtractProfiles.customProfiles[profile].fields;
+        }
+
         keys.forEach(function (key) {
+            // For custom profiles, use the custom label if available
             var label = keyLabels[key] || key;
+            if (customFields && customFields[key] && customFields[key].label) {
+                label = customFields[key].label;
+            }
             var selectedFieldId = mappings[key] || '';
 
             html += '<tr data-key="' + key + '">';
@@ -518,3 +540,688 @@
 if (typeof fieldSettings !== 'undefined') {
     fieldSettings.gravity_extract = '.gravity_extract_api_key_setting, .gravity_extract_model_setting, .gravity_extract_mapping_profile_setting, .gravity_extract_field_mappings_setting';
 }
+
+/**
+ * ================================================
+ * Profile Manager Module
+ * ================================================
+ */
+(function ($) {
+    'use strict';
+
+    var ProfileManager = {
+        currentEditSlug: null,
+        customProfiles: {},
+        masterFields: {},
+
+        /**
+         * Initialize the profile manager
+         */
+        init: function () {
+            // Load data from PHP
+            if (typeof gravityExtractProfiles !== 'undefined') {
+                this.customProfiles = gravityExtractProfiles.customProfiles || {};
+                this.masterFields = gravityExtractProfiles.masterFields || {};
+            }
+
+            this.bindEvents();
+            this.mergeCustomProfilesIntoDropdown();
+        },
+
+        /**
+         * Bind all event handlers
+         */
+        bindEvents: function () {
+            var self = this;
+
+            // Open modal
+            $(document).on('click', '#ge-open-profile-manager', function (e) {
+                e.preventDefault();
+                self.openModal();
+            });
+
+            // Close modal - close button (works even if clicking nested span)
+            $(document).on('click', '#ge-close-modal', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                self.closeModal();
+            });
+
+            // Close modal - clicking overlay background
+            $(document).on('click', '#ge-profile-modal-overlay', function (e) {
+                if (e.target === this) {
+                    self.closeModal();
+                }
+            });
+
+            // Escape key closes modal
+            $(document).on('keydown', function (e) {
+                if (e.key === 'Escape' && $('#ge-profile-modal-overlay').hasClass('active')) {
+                    self.closeModal();
+                }
+            });
+
+            // New profile button
+            $(document).on('click', '#ge-new-profile', function () {
+                self.showEditor(null);
+            });
+
+            // Back to list
+            $(document).on('click', '#ge-back-to-list', function () {
+                self.showList();
+            });
+
+            // Save profile
+            $(document).on('click', '#ge-save-profile', function () {
+                self.saveProfile();
+            });
+
+            // Edit profile
+            $(document).on('click', '.ge-edit-profile', function () {
+                var slug = $(this).data('slug');
+                self.showEditor(slug);
+            });
+
+            // Delete profile
+            $(document).on('click', '.ge-delete-profile', function () {
+                var slug = $(this).data('slug');
+                self.deleteProfile(slug);
+            });
+
+            // Duplicate profile
+            $(document).on('click', '.ge-duplicate-profile', function () {
+                var slug = $(this).data('slug');
+                self.duplicateProfile(slug);
+            });
+
+            // Export profile
+            $(document).on('click', '.ge-export-profile', function () {
+                var slug = $(this).data('slug');
+                self.exportProfile(slug);
+            });
+
+            // Import button
+            $(document).on('click', '#ge-import-profile', function () {
+                $('#ge-import-file').click();
+            });
+
+            // Import file change
+            $(document).on('change', '#ge-import-file', function (e) {
+                self.importProfile(e.target.files[0]);
+                $(this).val(''); // Reset input
+            });
+
+            // Edit field label (double-click)
+            $(document).on('dblclick', '#ge-enabled-fields .ge-field-item', function () {
+                self.editFieldLabel($(this));
+            });
+
+            // Edit label button
+            $(document).on('click', '.ge-edit-label', function (e) {
+                e.stopPropagation();
+                self.editFieldLabel($(this).closest('.ge-field-item'));
+            });
+
+            // Label dialog buttons
+            $(document).on('click', '#ge-save-label', function () {
+                self.saveLabelEdit();
+            });
+
+            $(document).on('click', '#ge-cancel-label', function () {
+                self.cancelLabelEdit();
+            });
+
+            // Enter key in label input
+            $(document).on('keydown', '#ge-custom-label-input', function (e) {
+                if (e.key === 'Enter') {
+                    self.saveLabelEdit();
+                } else if (e.key === 'Escape') {
+                    self.cancelLabelEdit();
+                }
+            });
+
+            // Detect fields button
+            $(document).on('click', '#ge-detect-fields', function () {
+                $('#ge-sample-file').click();
+            });
+
+            // Sample file selected - detect fields
+            $(document).on('change', '#ge-sample-file', function (e) {
+                if (e.target.files && e.target.files[0]) {
+                    self.detectFieldsFromSample(e.target.files[0]);
+                }
+                $(this).val(''); // Reset input
+            });
+        },
+
+        /**
+         * Open the modal
+         */
+        openModal: function () {
+            $('#ge-profile-modal-overlay').addClass('active');
+            this.showList();
+            this.renderProfilesList();
+        },
+
+        /**
+         * Close the modal
+         */
+        closeModal: function () {
+            $('#ge-profile-modal-overlay').removeClass('active');
+            this.cancelLabelEdit();
+        },
+
+        /**
+         * Show the list view
+         */
+        showList: function () {
+            $('#ge-profile-list-view').show();
+            $('#ge-profile-editor-view').hide();
+            $('#ge-modal-title').text('Manage Mapping Profiles');
+            this.currentEditSlug = null;
+            this.renderProfilesList();
+        },
+
+        /**
+         * Show the editor view
+         */
+        showEditor: function (slug) {
+            $('#ge-profile-list-view').hide();
+            $('#ge-profile-editor-view').show();
+
+            this.currentEditSlug = slug;
+
+            if (slug && this.customProfiles[slug]) {
+                // Editing existing profile
+                var profile = this.customProfiles[slug];
+                $('#ge-modal-title').text('Edit Profile');
+                $('#ge-profile-name').val(profile.name);
+                $('#ge-profile-slug').val(slug);
+                this.renderFieldsLists(profile.fields || {});
+            } else {
+                // New profile
+                $('#ge-modal-title').text('New Profile');
+                $('#ge-profile-name').val('');
+                $('#ge-profile-slug').val('');
+                this.renderFieldsLists({});
+            }
+
+            this.initSortable();
+        },
+
+        /**
+         * Render the profiles list
+         */
+        renderProfilesList: function () {
+            var $list = $('#ge-profiles-list');
+            var profiles = this.customProfiles;
+            var keys = Object.keys(profiles);
+
+            if (keys.length === 0) {
+                $list.html('<p class="ge-no-profiles">No custom profiles yet. Click "New Profile" to create one.</p>');
+                return;
+            }
+
+            var html = '';
+            keys.forEach(function (slug) {
+                var profile = profiles[slug];
+                var fieldCount = Object.keys(profile.fields || {}).length;
+
+                html += '<div class="ge-profile-item">';
+                html += '  <div class="ge-profile-item-info">';
+                html += '    <div class="ge-profile-item-name">' + self.escapeHtml(profile.name) + '</div>';
+                html += '    <div class="ge-profile-item-meta">' + fieldCount + ' field' + (fieldCount !== 1 ? 's' : '') + '</div>';
+                html += '  </div>';
+                html += '  <div class="ge-profile-item-actions">';
+                html += '    <button type="button" class="button ge-edit-profile" data-slug="' + slug + '" title="Edit"><span class="dashicons dashicons-edit"></span></button>';
+                html += '    <button type="button" class="button ge-duplicate-profile" data-slug="' + slug + '" title="Duplicate"><span class="dashicons dashicons-admin-page"></span></button>';
+                html += '    <button type="button" class="button ge-export-profile" data-slug="' + slug + '" title="Export"><span class="dashicons dashicons-download"></span></button>';
+                html += '    <button type="button" class="button ge-delete-profile" data-slug="' + slug + '" title="Delete"><span class="dashicons dashicons-trash"></span></button>';
+                html += '  </div>';
+                html += '</div>';
+            });
+
+            $list.html(html);
+        },
+
+        /**
+         * Render the available and enabled fields lists
+         */
+        renderFieldsLists: function (enabledFields) {
+            var $available = $('#ge-available-fields');
+            var $enabled = $('#ge-enabled-fields');
+            var masterFields = this.masterFields;
+            var enabledKeys = Object.keys(enabledFields);
+
+            // Available fields (not in enabled)
+            var availableHtml = '';
+            Object.keys(masterFields).forEach(function (key) {
+                if (enabledKeys.indexOf(key) === -1) {
+                    var field = masterFields[key];
+                    availableHtml += ProfileManager.createFieldItem(key, field.label, null);
+                }
+            });
+            $available.html(availableHtml);
+
+            // Enabled fields (in order)
+            var enabledHtml = '';
+            enabledKeys.forEach(function (key) {
+                var defaultLabel = masterFields[key] ? masterFields[key].label : key;
+                var customLabel = enabledFields[key] && enabledFields[key].label !== defaultLabel ? enabledFields[key].label : null;
+                enabledHtml += ProfileManager.createFieldItem(key, defaultLabel, customLabel);
+            });
+            $enabled.html(enabledHtml);
+        },
+
+        /**
+         * Create a field item HTML
+         */
+        createFieldItem: function (key, defaultLabel, customLabel) {
+            var html = '<li class="ge-field-item" data-key="' + key + '" data-default-label="' + this.escapeHtml(defaultLabel) + '">';
+            html += '  <div class="ge-field-item-content">';
+            html += '    <span class="ge-field-item-label">' + this.escapeHtml(defaultLabel) + '</span>';
+            html += '    <span class="ge-field-item-key">' + key + '</span>';
+            if (customLabel) {
+                html += '    <span class="ge-field-item-custom-label">→ ' + this.escapeHtml(customLabel) + '</span>';
+            }
+            html += '  </div>';
+            html += '  <div class="ge-field-item-actions">';
+            html += '    <button type="button" class="ge-edit-label" title="Edit Label"><span class="dashicons dashicons-edit"></span></button>';
+            html += '  </div>';
+            html += '</li>';
+            return html;
+        },
+
+        /**
+         * Initialize jQuery UI Sortable
+         */
+        initSortable: function () {
+            var self = this;
+
+            $('#ge-available-fields, #ge-enabled-fields').sortable({
+                connectWith: '.ge-sortable',
+                placeholder: 'ge-field-item ui-sortable-placeholder',
+                cursor: 'grabbing',
+                tolerance: 'pointer',
+                receive: function (event, ui) {
+                    // When item is received into enabled list, optionally prompt for label
+                    // For now, just use default
+                },
+                stop: function () {
+                    // Update customLabel display after sort
+                }
+            }).disableSelection();
+        },
+
+        /**
+         * Detect fields from a sample document using AI
+         */
+        detectFieldsFromSample: function (file) {
+            var self = this;
+            var $spinner = $('#ge-detect-spinner');
+            var $button = $('#ge-detect-fields');
+
+            // Show loading state
+            $spinner.addClass('is-active');
+            $button.prop('disabled', true);
+
+            // Get form_id from URL (needed for API settings)
+            var formId = new URLSearchParams(window.location.search).get('id') || 0;
+
+            // Create FormData to upload file (server will handle PDF conversion & optimization)
+            var formData = new FormData();
+            formData.append('action', 'gravity_extract_detect_fields');
+            formData.append('nonce', gravityExtractProfiles.nonce);
+            formData.append('form_id', formId);
+            formData.append('sample_file', file);
+
+            // Upload file via AJAX
+            $.ajax({
+                url: gravityExtractProfiles.ajaxUrl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    $spinner.removeClass('is-active');
+                    $button.prop('disabled', false);
+
+                    if (response.success && response.data.fields) {
+                        var detectedFields = response.data.fields;
+
+                        // Clear current available fields and add detected ones
+                        var $available = $('#ge-available-fields');
+                        var html = '';
+
+                        detectedFields.forEach(function (field) {
+                            var key = field.key;
+                            var label = field.label || key;
+                            html += self.createFieldItem(key, label, null);
+                        });
+
+                        $available.html(html);
+
+                        // Re-initialize sortable
+                        self.initSortable();
+
+                        self.showToast(response.data.message || 'Fields detected!', 'success');
+                    } else {
+                        self.showToast(response.data.message || 'No fields detected', 'error');
+                    }
+                },
+                error: function () {
+                    $spinner.removeClass('is-active');
+                    $button.prop('disabled', false);
+                    self.showToast('Detection failed. Please try again.', 'error');
+                }
+            });
+        },
+
+        /**
+         * Save the current profile
+         */
+        saveProfile: function () {
+            var self = this;
+            var name = $('#ge-profile-name').val().trim();
+            var slug = $('#ge-profile-slug').val();
+
+            if (!name) {
+                this.showToast(gravityExtractProfiles.i18n.nameRequired, 'error');
+                $('#ge-profile-name').focus();
+                return;
+            }
+
+            // Collect enabled fields
+            var fields = {};
+            $('#ge-enabled-fields .ge-field-item').each(function () {
+                var $item = $(this);
+                var key = $item.data('key');
+                var defaultLabel = $item.data('default-label');
+                var $customLabel = $item.find('.ge-field-item-custom-label');
+                var customLabel = $customLabel.length ? $customLabel.text().replace('→ ', '') : defaultLabel;
+
+                fields[key] = { label: customLabel };
+            });
+
+            if (Object.keys(fields).length === 0) {
+                this.showToast(gravityExtractProfiles.i18n.noFieldsEnabled, 'error');
+                return;
+            }
+
+            // AJAX save
+            $.ajax({
+                url: gravityExtractProfiles.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'gravity_extract_save_profile',
+                    nonce: gravityExtractProfiles.nonce,
+                    name: name,
+                    slug: slug,
+                    fields: JSON.stringify(fields)
+                },
+                success: function (response) {
+                    if (response.success) {
+                        self.customProfiles[response.data.slug] = response.data.profile;
+                        self.showToast(gravityExtractProfiles.i18n.profileSaved, 'success');
+                        self.mergeCustomProfilesIntoDropdown();
+                        self.showList();
+                    } else {
+                        self.showToast(response.data.message || gravityExtractProfiles.i18n.error, 'error');
+                    }
+                },
+                error: function () {
+                    self.showToast(gravityExtractProfiles.i18n.error, 'error');
+                }
+            });
+        },
+
+        /**
+         * Delete a profile
+         */
+        deleteProfile: function (slug) {
+            var self = this;
+
+            if (!confirm(gravityExtractProfiles.i18n.confirmDelete)) {
+                return;
+            }
+
+            $.ajax({
+                url: gravityExtractProfiles.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'gravity_extract_delete_profile',
+                    nonce: gravityExtractProfiles.nonce,
+                    slug: slug
+                },
+                success: function (response) {
+                    if (response.success) {
+                        delete self.customProfiles[slug];
+                        self.showToast(gravityExtractProfiles.i18n.profileDeleted, 'success');
+                        self.mergeCustomProfilesIntoDropdown();
+                        self.renderProfilesList();
+                    } else {
+                        self.showToast(response.data.message || gravityExtractProfiles.i18n.error, 'error');
+                    }
+                },
+                error: function () {
+                    self.showToast(gravityExtractProfiles.i18n.error, 'error');
+                }
+            });
+        },
+
+        /**
+         * Duplicate a profile
+         */
+        duplicateProfile: function (slug) {
+            var self = this;
+            var profile = this.customProfiles[slug];
+            if (!profile) return;
+
+            var newName = prompt(gravityExtractProfiles.i18n.enterNewName, profile.name + ' (Copy)');
+            if (!newName) return;
+
+            $.ajax({
+                url: gravityExtractProfiles.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'gravity_extract_duplicate_profile',
+                    nonce: gravityExtractProfiles.nonce,
+                    slug: slug,
+                    new_name: newName
+                },
+                success: function (response) {
+                    if (response.success) {
+                        self.customProfiles[response.data.slug] = response.data.profile;
+                        self.showToast(gravityExtractProfiles.i18n.profileSaved, 'success');
+                        self.mergeCustomProfilesIntoDropdown();
+                        self.renderProfilesList();
+                    } else {
+                        self.showToast(response.data.message || gravityExtractProfiles.i18n.error, 'error');
+                    }
+                },
+                error: function () {
+                    self.showToast(gravityExtractProfiles.i18n.error, 'error');
+                }
+            });
+        },
+
+        /**
+         * Export a profile as JSON
+         */
+        exportProfile: function (slug) {
+            var profile = this.customProfiles[slug];
+            if (!profile) return;
+
+            var data = {
+                name: profile.name,
+                fields: profile.fields
+            };
+
+            var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = slug + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        },
+
+        /**
+         * Import a profile from JSON file
+         */
+        importProfile: function (file) {
+            var self = this;
+
+            if (!file) return;
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    var data = JSON.parse(e.target.result);
+
+                    $.ajax({
+                        url: gravityExtractProfiles.ajaxUrl,
+                        type: 'POST',
+                        data: {
+                            action: 'gravity_extract_import_profile',
+                            nonce: gravityExtractProfiles.nonce,
+                            json_data: JSON.stringify(data)
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                self.customProfiles[response.data.slug] = response.data.profile;
+                                self.showToast(gravityExtractProfiles.i18n.profileImported, 'success');
+                                self.mergeCustomProfilesIntoDropdown();
+                                self.renderProfilesList();
+                            } else {
+                                self.showToast(response.data.message || gravityExtractProfiles.i18n.error, 'error');
+                            }
+                        },
+                        error: function () {
+                            self.showToast(gravityExtractProfiles.i18n.error, 'error');
+                        }
+                    });
+                } catch (err) {
+                    self.showToast('Invalid JSON file', 'error');
+                }
+            };
+            reader.readAsText(file);
+        },
+
+        /**
+         * Edit field label
+         */
+        editFieldLabel: function ($item) {
+            var $dialog = $('#ge-label-edit-dialog');
+            var $input = $('#ge-custom-label-input');
+            var offset = $item.offset();
+
+            var currentLabel = $item.find('.ge-field-item-custom-label').text().replace('→ ', '') ||
+                $item.data('default-label');
+
+            $input.val(currentLabel);
+            $dialog.data('target', $item);
+            $dialog.css({
+                top: offset.top + $item.outerHeight() + 5,
+                left: offset.left
+            }).show();
+            $input.focus().select();
+        },
+
+        /**
+         * Save label edit
+         */
+        saveLabelEdit: function () {
+            var $dialog = $('#ge-label-edit-dialog');
+            var $target = $dialog.data('target');
+            var newLabel = $('#ge-custom-label-input').val().trim();
+            var defaultLabel = $target.data('default-label');
+
+            // Remove existing custom label
+            $target.find('.ge-field-item-custom-label').remove();
+
+            // Add new custom label if different from default
+            if (newLabel && newLabel !== defaultLabel) {
+                $target.find('.ge-field-item-content').append(
+                    '<span class="ge-field-item-custom-label">→ ' + this.escapeHtml(newLabel) + '</span>'
+                );
+            }
+
+            $dialog.hide();
+        },
+
+        /**
+         * Cancel label edit
+         */
+        cancelLabelEdit: function () {
+            $('#ge-label-edit-dialog').hide();
+        },
+
+        /**
+         * Merge custom profiles into the mapping profile dropdown
+         */
+        mergeCustomProfilesIntoDropdown: function () {
+            var $select = $('#gravity_extract_mapping_profile');
+            if ($select.length === 0) return;
+
+            // Remove existing custom profile options
+            $select.find('option[data-custom="true"]').remove();
+
+            // Add custom profiles
+            var self = this;
+            Object.keys(this.customProfiles).forEach(function (slug) {
+                var profile = self.customProfiles[slug];
+                $select.append(
+                    '<option value="' + slug + '" data-custom="true">' +
+                    self.escapeHtml(profile.name) + ' (Custom)</option>'
+                );
+            });
+
+            // Also update the invoiceMappingProfiles object for field mappings
+            Object.keys(this.customProfiles).forEach(function (slug) {
+                var profile = self.customProfiles[slug];
+                window.invoiceMappingProfiles = window.invoiceMappingProfiles || {};
+                window.invoiceMappingProfiles[slug] = Object.keys(profile.fields || {});
+            });
+        },
+
+        /**
+         * Show toast notification
+         */
+        showToast: function (message, type) {
+            var $toast = $('<div class="ge-toast"></div>');
+            $toast.addClass(type || '').text(message);
+            $('body').append($toast);
+
+            setTimeout(function () {
+                $toast.fadeOut(300, function () {
+                    $(this).remove();
+                });
+            }, 3000);
+        },
+
+        /**
+         * Escape HTML
+         */
+        escapeHtml: function (text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    };
+
+    // Store reference to self for use in callbacks
+    var self = ProfileManager;
+
+    // Initialize on document ready
+    $(document).ready(function () {
+        ProfileManager.init();
+    });
+
+    // Expose for debugging
+    window.GravityExtractProfileManager = ProfileManager;
+
+})(jQuery);
