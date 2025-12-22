@@ -140,6 +140,19 @@
             'amount_total_tax',
             'amount_total_incl_tax',
             'currency'
+        ],
+        bank_account_identification: [
+            'full_extraction',
+            'bank_user_id_first_name',
+            'bank_user_id_last_name',
+            'bank_user_id_gender',
+            'bank_BIC',
+            'bank_IBAN',
+            'bank_name',
+            'bank_address',
+            'bank_city',
+            'bank_postal_code',
+            'bank_country'
         ]
     };
 
@@ -205,7 +218,17 @@
         point_of_arrival: 'Point of Arrival',
         trip_length: 'Trip Length (km/miles)',
         toll_amount: 'Toll Amount',
-        gas_amount: 'Gas Amount'
+        gas_amount: 'Gas Amount',
+        bank_user_id_first_name: 'Account Holder First Name',
+        bank_user_id_last_name: 'Account Holder Last Name',
+        bank_user_id_gender: 'Account Holder Gender',
+        bank_BIC: 'BIC/SWIFT Code',
+        bank_IBAN: 'IBAN',
+        bank_name: 'Bank Name',
+        bank_address: 'Bank Address',
+        bank_city: 'Bank City',
+        bank_postal_code: 'Bank Postal Code',
+        bank_country: 'Bank Country'
     };
 
     // Wait for GF form editor to be ready
@@ -216,7 +239,7 @@
 
         // Register field settings for gravity_extract
         if (typeof fieldSettings !== 'undefined') {
-            fieldSettings.gravity_extract = '.label_setting, .description_setting, .rules_setting, .admin_label_setting, .label_placement_setting, .description_placement_setting, .css_class_setting, .visibility_setting, .gravity_extract_api_key_setting, .gravity_extract_model_setting, .gravity_extract_target_field_setting, .file_extensions_setting, .gravity_extract_mapping_profile_setting, .gravity_extract_field_mappings_setting';
+            fieldSettings.gravity_extract = '.label_setting, .description_setting, .rules_setting, .admin_label_setting, .label_placement_setting, .description_placement_setting, .css_class_setting, .visibility_setting, .gravity_extract_mapping_profile_setting, .gravity_extract_field_mappings_setting';
         }
     });
 
@@ -224,18 +247,6 @@
     $(document).on('gform_load_field_settings', function (event, field, form) {
         if (field.type !== 'gravity_extract') {
             return;
-        }
-
-        // Set API key value
-        $('#gravity_extract_api_key').val(field.gravityExtractApiKey || '');
-
-        // Populate model dropdown
-        if (field.gravityExtractApiKey) {
-            gravityExtractFetchModels(field.gravityExtractApiKey, field.gravityExtractModel);
-        } else {
-            $('#gravity_extract_model').html(
-                '<option value="">' + gravityExtractAdmin.strings.selectModel + '</option>'
-            );
         }
 
         // Set mapping profile
@@ -250,8 +261,6 @@
         }
 
         $('#gravity_extract_mapping_profile').val(config.profile || '');
-
-
 
         // Render mappings table
         gravityExtractRenderMappingsTable(config.profile || '', config.mappings || {});
@@ -442,14 +451,6 @@
         var keys = invoiceMappingProfiles[profile] || [];
         var formFields = getFormFieldsForMapping();
         var $spinner = $('#gravity-extract-automap-spinner');
-        var field = GetSelectedField();
-        var apiKey = field.gravityExtractApiKey;
-        var model = field.gravityExtractModel;
-
-        if (!apiKey || !model) {
-            alert(gravityExtractAdmin.strings.apiKeyRequired || 'Please configure API Key and Model first.');
-            return;
-        }
 
         if (keys.length === 0 || formFields.length === 0) {
             alert('No extracted keys or form fields available to map.');
@@ -464,8 +465,7 @@
             data: {
                 action: 'gravity_extract_automap_fields',
                 nonce: gravityExtractAdmin.nonce,
-                api_key: apiKey,
-                model: model,
+                form_id: form.id,
                 keys: keys,
                 form_fields: formFields
             },
