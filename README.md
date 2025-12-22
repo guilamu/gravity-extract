@@ -86,19 +86,23 @@ unzip gravity-extract.zip
 
 > 💡 The free POE API tier includes generous usage limits for personal and small business use.
 
-### 2. Plugin Settings
-Navigate to **Settings → Gravity Extract** in WordPress admin:
+### 2. Form Settings
+Configure the API key and AI model **per form** in the Gravity Forms editor:
+
+1. Edit a Gravity Form
+2. Go to **Settings → Gravity Extract**
+3. Enter your POE API Key
+4. Select an AI Model (save and reload to see available models)
 
 | Setting | Description |
 |---------|-------------|
 | **POE API Key** | Your POE API key for AI model access |
-| **Default Model** | AI model to use (default: `Gemini-3.0-Flash`) |
+| **AI Model** | Vision model for image analysis (e.g., `Gemini-3.0-Flash`) |
 
 ### 3. Field Settings
-In the Gravity Forms editor, add a **Gravity Extract** field and configure:
+Once the form is configured, add a **Gravity Extract** field and set:
 
-- **API Key** (override global setting)
-- **AI Model** (override global setting)
+- **Mapping Profile** - Select the document type to extract
 - **Field Mappings** - Map extracted data to form fields
 
 ---
@@ -126,6 +130,19 @@ In the Gravity Forms editor, add a **Gravity Extract** field and configure:
 1. Create your mappings
 2. Enter a profile name and click **Save Profile**
 3. Load saved profiles from the dropdown
+
+### Available Mapping Profiles
+
+| Profile | Description |
+|---------|-------------|
+| **Supplier Invoice (Purchases)** | B2B supplier invoices with supplier/customer details, VAT numbers, and full amount breakdown |
+| **Sales Invoice** | Customer-facing sales invoices with seller info, order references, and payment tracking |
+| **Credit Note** | Credit notes/refunds linked to original invoices with credit reason |
+| **Generic Receipt** | Standard receipts from any merchant with basic transaction details |
+| **Restaurant / Hotel** | Hospitality expenses with covers, nights, multiple tax rates, and tips |
+| **Mileage Expenses (Route Maps)** | Map screenshots (Google Maps, Mappy, etc.) to extract route distance and travel costs |
+| **Bank Details (RIB/Account ID)** | Bank account identification documents (RIB) with IBAN, BIC, and holder info |
+| **Generic Document (Minimal)** | Light extraction for mixed document types with core fields only |
 
 ---
 
@@ -173,6 +190,20 @@ The AI extracts the following data categories:
 | `trip_length` | Distance (with units stripped) |
 | `toll_amount` | Cost of tolls (numeric) |
 | `gas_amount` | Cost of fuel (numeric) |
+
+### Bank Account Identification (RIB)
+| Field Key | Description |
+|-----------|-------------|
+| `bank_user_id_first_name` | Account holder first name |
+| `bank_user_id_last_name` | Account holder last name |
+| `bank_user_id_gender` | Account holder gender |
+| `bank_BIC` | BIC/SWIFT code |
+| `bank_IBAN` | IBAN number |
+| `bank_name` | Bank name |
+| `bank_address` | Bank address |
+| `bank_city` | Bank city |
+| `bank_postal_code` | Bank postal code |
+| `bank_country` | Bank country |
 
 ### Items
 | Field Key | Description |
@@ -316,6 +347,3 @@ Contributions are welcome! Please:
 <p align="center">
   Made with ❤️ for the WordPress community
 </p>
-
-
-

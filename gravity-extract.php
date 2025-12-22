@@ -60,7 +60,9 @@ function gravity_extract_init()
     // Initialize
     Gravity_Extract::get_instance();
 
-
+    // Register the form settings addon
+    require_once GRAVITY_EXTRACT_PATH . 'includes/class-gravity-extract-addon.php';
+    GFAddOn::register('Gravity_Extract_Addon');
 }
 add_action('gform_loaded', 'gravity_extract_init', 5);
 
