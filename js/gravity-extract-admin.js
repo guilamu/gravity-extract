@@ -291,9 +291,8 @@
         var keys = invoiceMappingProfiles[profile];
         var formFields = getFormFieldsForMapping();
 
-        var html = '<div style="margin-bottom: 10px;">';
-        html += '<button type="button" class="button button-secondary" style="width: 100%;" onclick="gravityExtractAutomapFields(\'' + profile + '\');">Automap with AI ✨</button>';
-        html += '<span id="gravity-extract-automap-spinner" class="spinner" style="float: none;"></span>';
+        var html = '<div style="margin-bottom: 5px; position: relative;">';
+        html += '<button type="button" class="button button-secondary" style="width: 100%;" onclick="gravityExtractAutomapFields(\'' + profile + '\');">Automap with AI ✨ <span id="gravity-extract-automap-spinner" class="spinner" style="float: none; margin: 0; position: absolute; right: 10px; top: 50%; transform: translateY(-50%);"></span></button>';
         html += '</div>';
 
         html += '<table class="gravity-extract-mappings-table">';
