@@ -23,7 +23,7 @@ Gravity Extract is a WordPress plugin that integrates with Gravity Forms to auto
 - Real-time upload progress with visual feedback
 
 ### 🤖 AI-Powered Extraction
-- **Free to use** with POE API (account required)
+- **Free to use** with [POE](https://poe.com) API (account required)
 - Access to multiple vision models: GPT-4o, Claude, Gemini, and more
 - Extracts structured data: merchant details, dates, amounts, addresses, line items
 - Smart field detection for invoices, receipts, and general documents
@@ -48,6 +48,12 @@ Gravity Extract is a WordPress plugin that integrates with Gravity Forms to auto
 - Live preview of uploaded documents
 - Status indicators for processing stages
 - Seamless integration with Gravity Forms editor
+
+### 🌍 Internationalization
+- Fully translatable (i18n ready)
+- French translation included (`fr_FR`)
+- Translation-ready POT template included
+- Compatible with `wp i18n make-pot` for generating translations
 
 ---
 
@@ -85,10 +91,14 @@ unzip gravity-extract.zip
 
 ### 1. Create a POE Account (Required)
 
+> ⚠️ **A [POE](https://poe.com) account is mandatory** for this plugin to work. POE provides free access to AI models.
+
 1. Go to **[poe.com](https://poe.com)** and create a free account (or sign in)
 2. Navigate to **Settings → API Keys** (or visit [poe.com/api_key](https://poe.com/api_key))
 3. Create a new API key
 4. Copy the key to use in the plugin settings
+
+> 💡 The free POE API tier includes generous usage limits for personal and small business use.
 
 ### 2. Form Settings
 Configure the API key and AI model **per form** in the Gravity Forms editor:
@@ -268,6 +278,10 @@ gravity-extract/
 ├── css/
 │   ├── gravity-extract-admin.css         # Admin styles
 │   └── gravity-extract-frontend.css      # Frontend styles
+├── languages/
+│   ├── gravity-extract.pot               # Translation template
+│   ├── gravity-extract-fr_FR.po          # French translation
+│   └── gravity-extract-fr_FR.mo          # Compiled French translation
 └── README.md
 ```
 
@@ -366,4 +380,3 @@ Contributions are welcome! Please:
 <p align="center">
   Made with ❤️ for the WordPress community
 </p>
-
