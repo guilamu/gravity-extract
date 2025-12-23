@@ -25,6 +25,22 @@ class Gravity_Extract_Addon extends GFAddOn
     protected $_short_title = 'Gravity Extract';
 
     /**
+     * Get addon title (translatable)
+     */
+    public function get_title()
+    {
+        return __('Gravity Extract', 'gravity-extract');
+    }
+
+    /**
+     * Get addon short title (translatable)
+     */
+    public function get_short_title()
+    {
+        return __('Gravity Extract', 'gravity-extract');
+    }
+
+    /**
      * Singleton instance
      */
     private static $_instance = null;
@@ -54,6 +70,9 @@ class Gravity_Extract_Addon extends GFAddOn
     public function init()
     {
         parent::init();
+
+        // Load plugin textdomain for translations
+        load_plugin_textdomain('gravity-extract', false, basename(dirname(GRAVITY_EXTRACT_FILE)) . '/languages/');
     }
 
     /**
@@ -112,6 +131,17 @@ class Gravity_Extract_Addon extends GFAddOn
                 'error' => __('An error occurred. Please try again.', 'gravity-extract'),
                 'noFieldsEnabled' => __('Please enable at least one field.', 'gravity-extract'),
                 'nameRequired' => __('Profile name is required.', 'gravity-extract'),
+                'manageProfiles' => __('Manage Mapping Profiles', 'gravity-extract'),
+                'editProfile' => __('Edit Profile', 'gravity-extract'),
+                'newProfile' => __('New Profile', 'gravity-extract'),
+                'noProfiles' => __('No custom profiles yet. Click "New Profile" to create one.', 'gravity-extract'),
+                'field' => __('field', 'gravity-extract'),
+                'fields' => __('fields', 'gravity-extract'),
+                'customSuffix' => __('(Custom)', 'gravity-extract'),
+                'invalidJson' => __('Invalid JSON file', 'gravity-extract'),
+                'detectionFailed' => __('Detection failed. Please try again.', 'gravity-extract'),
+                'fieldsDetected' => __('Fields detected!', 'gravity-extract'),
+                'noFieldsDetected' => __('No fields detected', 'gravity-extract'),
             )
         ));
     }

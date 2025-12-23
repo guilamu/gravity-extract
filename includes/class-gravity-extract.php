@@ -129,6 +129,16 @@ class Gravity_Extract
                 'errorFetching' => __('Error fetching models', 'gravity-extract'),
                 'selectTargetField' => __('Select target field', 'gravity-extract'),
                 'noTextFields' => __('No text/paragraph fields in form', 'gravity-extract'),
+                'selectProfileFirst' => __('Select a mapping profile above to configure field mappings.', 'gravity-extract'),
+                'notMapped' => __('— Not mapped —', 'gravity-extract'),
+                'extractedField' => __('Extracted Field', 'gravity-extract'),
+                'targetFormField' => __('Target Form Field', 'gravity-extract'),
+                'automapWithAi' => __('Automap with AI ✨', 'gravity-extract'),
+                'noKeysOrFields' => __('No extracted keys or form fields available to map.', 'gravity-extract'),
+                'automapSuccess' => __('Successfully automapped %d fields!', 'gravity-extract'),
+                'automapNoMatch' => __('AI could not find any confident matches.', 'gravity-extract'),
+                'automapError' => __('Error occurred during automapping.', 'gravity-extract'),
+                'automapFailed' => __('Request failed. Please try again.', 'gravity-extract'),
             ),
         ));
     }
@@ -194,6 +204,10 @@ class Gravity_Extract
                 'complete' => __('Extraction complete!', 'gravity-extract'),
                 'error' => __('Error analyzing image', 'gravity-extract'),
                 'invalidFile' => __('Please upload an image file (JPEG, PNG, or WebP)', 'gravity-extract'),
+                'processing' => __('Processing image...', 'gravity-extract'),
+                'fileTooLarge' => __('File size exceeds 10MB limit', 'gravity-extract'),
+                'uploadFailed' => __('File upload failed. Please try again.', 'gravity-extract'),
+                'fieldNotConfigured' => __('Field not configured', 'gravity-extract'),
             ),
         ));
     }
