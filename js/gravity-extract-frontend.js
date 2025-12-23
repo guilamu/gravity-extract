@@ -97,7 +97,7 @@
             // Validate file size (10MB max)
             var maxSize = 10 * 1024 * 1024;
             if (file.size > maxSize) {
-                alert('File size exceeds 10MB limit');
+                alert(gravityExtractFrontend.strings.fileTooLarge);
                 this.resetField($wrap);
                 return;
             }
@@ -111,7 +111,7 @@
             var $status = $wrap.find('.gravity-extract-status');
             var $statusText = $status.find('.gravity-extract-status-text');
             $status.show().removeClass('success error').addClass('loading');
-            $statusText.text('Processing image...');
+            $statusText.text(gravityExtractFrontend.strings.processing);
 
             // Upload file to server first
             this.uploadFile($wrap, file, function (fileUrl, extractedData, mappings) {
@@ -214,14 +214,14 @@
                         callback(response.data.url, response.data.extracted_data, response.data.mappings);
                     } else {
                         console.error('File upload failed:', response);
-                        alert('File upload failed. Please try again.');
+                        alert(gravityExtractFrontend.strings.uploadFailed);
                     }
                 },
                 error: function (xhr, status, error) {
                     console.error('File upload request failed:', status, error);
                     console.error('XHR:', xhr);
                     $wrap.data('uploading', false);  // Clear upload lock
-                    alert('File upload failed. Please try again.');
+                    alert(gravityExtractFrontend.strings.uploadFailed);
                 }
             });
         },
@@ -247,7 +247,7 @@
             var fieldConfig = gravityExtractFrontend.fields[fieldId];
 
             if (!fieldConfig || !fieldConfig.hasApiKey) {
-                console.error('Gravity Extract: Field not configured');
+                console.error('Gravity Extract: ' + gravityExtractFrontend.strings.fieldNotConfigured);
                 return;
             }
 

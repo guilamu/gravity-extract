@@ -295,7 +295,7 @@
         }
 
         if (!profile || !keys || keys.length === 0) {
-            $container.html('<p class="description">Select a mapping profile above to configure field mappings.</p>');
+            $container.html('<p class="description">' + gravityExtractAdmin.strings.selectProfileFirst + '</p>');
             return;
         }
 
@@ -306,7 +306,7 @@
         html += '</div>';
 
         html += '<table class="gravity-extract-mappings-table">';
-        html += '<thead><tr><th>Extracted Field</th><th>Target Form Field</th></tr></thead>';
+        html += '<thead><tr><th>' + gravityExtractAdmin.strings.extractedField + '</th><th>' + gravityExtractAdmin.strings.targetFormField + '</th></tr></thead>';
         html += '<tbody>';
 
         // Get custom profile fields for label lookup
@@ -329,7 +329,7 @@
             html += '<td class="mapping-key"><code>' + key + '</code><br><small>' + label + '</small></td>';
             html += '<td class="mapping-target">';
             html += '<select class="gravity-extract-mapping-select" onchange="gravityExtractUpdateMapping(\'' + key + '\', this.value);">';
-            html += '<option value="">— Not mapped —</option>';
+            html += '<option value="">' + gravityExtractAdmin.strings.notMapped + '</option>';
 
             formFields.forEach(function (f) {
                 var selected = selectedFieldId == f.id ? ' selected' : '';
@@ -474,7 +474,7 @@
         var $spinner = $('#gravity-extract-automap-spinner');
 
         if (keys.length === 0 || formFields.length === 0) {
-            alert('No extracted keys or form fields available to map.');
+            alert(gravityExtractAdmin.strings.noKeysOrFields);
             return;
         }
 
@@ -510,17 +510,17 @@
                     });
 
                     if (updateCount > 0) {
-                        alert('Successfully automapped ' + updateCount + ' fields!');
+                        alert(gravityExtractAdmin.strings.automapSuccess.replace('%d', updateCount));
                     } else {
-                        alert('AI could not find any confident matches.');
+                        alert(gravityExtractAdmin.strings.automapNoMatch);
                     }
                 } else {
-                    alert(response.data.message || 'Error occurred during automapping.');
+                    alert(response.data.message || gravityExtractAdmin.strings.automapError);
                 }
             },
             error: function () {
                 $spinner.removeClass('is-active');
-                alert('Request failed. Please try again.');
+                alert(gravityExtractAdmin.strings.automapFailed);
             }
         });
     };
@@ -717,7 +717,7 @@ if (typeof fieldSettings !== 'undefined') {
         showList: function () {
             $('#ge-profile-list-view').show();
             $('#ge-profile-editor-view').hide();
-            $('#ge-modal-title').text('Manage Mapping Profiles');
+            $('#ge-modal-title').text(gravityExtractProfiles.i18n.manageProfiles);
             this.currentEditSlug = null;
             this.renderProfilesList();
         },
@@ -734,13 +734,13 @@ if (typeof fieldSettings !== 'undefined') {
             if (slug && this.customProfiles[slug]) {
                 // Editing existing profile
                 var profile = this.customProfiles[slug];
-                $('#ge-modal-title').text('Edit Profile');
+                $('#ge-modal-title').text(gravityExtractProfiles.i18n.editProfile);
                 $('#ge-profile-name').val(profile.name);
                 $('#ge-profile-slug').val(slug);
                 this.renderFieldsLists(profile.fields || {});
             } else {
                 // New profile
-                $('#ge-modal-title').text('New Profile');
+                $('#ge-modal-title').text(gravityExtractProfiles.i18n.newProfile);
                 $('#ge-profile-name').val('');
                 $('#ge-profile-slug').val('');
                 this.renderFieldsLists({});
@@ -758,7 +758,7 @@ if (typeof fieldSettings !== 'undefined') {
             var keys = Object.keys(profiles);
 
             if (keys.length === 0) {
-                $list.html('<p class="ge-no-profiles">No custom profiles yet. Click "New Profile" to create one.</p>');
+                $list.html('<p class="ge-no-profiles">' + gravityExtractProfiles.i18n.noProfiles + '</p>');
                 return;
             }
 
@@ -766,11 +766,12 @@ if (typeof fieldSettings !== 'undefined') {
             keys.forEach(function (slug) {
                 var profile = profiles[slug];
                 var fieldCount = Object.keys(profile.fields || {}).length;
+                var fieldLabel = fieldCount === 1 ? gravityExtractProfiles.i18n.field : gravityExtractProfiles.i18n.fields;
 
                 html += '<div class="ge-profile-item">';
                 html += '  <div class="ge-profile-item-info">';
                 html += '    <div class="ge-profile-item-name">' + self.escapeHtml(profile.name) + '</div>';
-                html += '    <div class="ge-profile-item-meta">' + fieldCount + ' field' + (fieldCount !== 1 ? 's' : '') + '</div>';
+                html += '    <div class="ge-profile-item-meta">' + fieldCount + ' ' + fieldLabel + '</div>';
                 html += '  </div>';
                 html += '  <div class="ge-profile-item-actions">';
                 html += '    <button type="button" class="button ge-edit-profile" data-slug="' + slug + '" title="Edit"><span class="dashicons dashicons-edit"></span></button>';
@@ -904,15 +905,15 @@ if (typeof fieldSettings !== 'undefined') {
                         // Re-initialize sortable
                         self.initSortable();
 
-                        self.showToast(response.data.message || 'Fields detected!', 'success');
+                        self.showToast(response.data.message || gravityExtractProfiles.i18n.fieldsDetected, 'success');
                     } else {
-                        self.showToast(response.data.message || 'No fields detected', 'error');
+                        self.showToast(response.data.message || gravityExtractProfiles.i18n.noFieldsDetected, 'error');
                     }
                 },
                 error: function () {
                     $spinner.removeClass('is-active');
                     $button.prop('disabled', false);
-                    self.showToast('Detection failed. Please try again.', 'error');
+                    self.showToast(gravityExtractProfiles.i18n.detectionFailed, 'error');
                 }
             });
         },
@@ -1104,7 +1105,7 @@ if (typeof fieldSettings !== 'undefined') {
                         }
                     });
                 } catch (err) {
-                    self.showToast('Invalid JSON file', 'error');
+                    self.showToast(gravityExtractProfiles.i18n.invalidJson, 'error');
                 }
             };
             reader.readAsText(file);
@@ -1175,7 +1176,7 @@ if (typeof fieldSettings !== 'undefined') {
                 var profile = self.customProfiles[slug];
                 $select.append(
                     '<option value="' + slug + '" data-custom="true">' +
-                    self.escapeHtml(profile.name) + ' (Custom)</option>'
+                    self.escapeHtml(profile.name) + ' ' + gravityExtractProfiles.i18n.customSuffix + '</option>'
                 );
             });
 
