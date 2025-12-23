@@ -1,0 +1,560 @@
+# Copyright (C) 2024 Gravity Extract
+# This file is distributed under the same license as the Gravity Extract plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Gravity Extract 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-23 10:00+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: gravity-extract.php:42
+msgid "Gravity Extract requires Gravity Forms to be installed and activated."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+#: includes/class-gravity-extract-addon.php
+msgid "Gravity Extract"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Fetching models..."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Select a model"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No image-capable models found"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Error fetching models"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Select target field"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No text/paragraph fields in form"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Select a mapping profile above to configure field mappings."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "— Not mapped —"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Extracted Field"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Target Form Field"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Automap with AI ✨"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No extracted keys or form fields available to map."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Successfully automapped %d fields!"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "AI could not find any confident matches."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Error occurred during automapping."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Request failed. Please try again."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Uploading..."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Analyzing document with AI..."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Extraction complete!"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Error analyzing image"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Please upload an image file (JPEG, PNG, or WebP)"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Processing image..."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "File size exceeds 10MB limit"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "File upload failed. Please try again."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Field not configured"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Accepted File Types"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Only image files (JPEG, PNG, WebP) are accepted for AI analysis."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Mapping Profile"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Select a profile"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Supplier Invoice (Purchases)"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Sales invoice"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Credit note"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Generic receipt"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Restaurant / Hotel"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Mileage Expenses (Route Maps)"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Bank Details (RIB/Account ID)"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Generic Document (Minimal)"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Field Mappings"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "POE API Key"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Enter your POE API key to enable AI-powered document extraction. Get your key from poe.com."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "AI Model"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Select the AI model to use for image analysis. Only models that support image input are shown."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Select the type of document to extract. Each profile defines which fields to extract from the document."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Map each extracted value to a form field. The AI will extract data and populate the mapped fields."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Unauthorized"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "API key is required"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Missing required parameters"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Form not found"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Field not found"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Form not configured. Please set API Key and Model in Form Settings → Gravity Extract."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No mapping profile selected"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No fields mapped for extraction"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No file uploaded"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "PDF conversion failed. Please try uploading an image instead."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No mapping profile selected for analysis"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Failed to read uploaded file for analysis"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "File uploaded and analyzed successfully"
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "Please configure API Key and Model in Form Settings → Gravity Extract first."
+msgstr ""
+
+#: includes/class-gravity-extract.php
+msgid "No keys or fields provided to map"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Gravity Extract Settings"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Configure the POE API credentials and AI model for document extraction in this form."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Get your API key from poe.com"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Enter your POE API key for AI document analysis."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "After saving the API key, refresh this page to load available AI models."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Mapping Profiles"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Create and manage custom document mapping profiles."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Manage Mapping Profiles"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Select a model (save API key first)"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Are you sure you want to delete this profile?"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Enter profile name:"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Enter new name for duplicate:"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Profile saved successfully!"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Profile deleted successfully!"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Profile imported successfully!"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Please enable at least one field."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Profile name is required."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Edit Profile"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "New Profile"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "No custom profiles yet. Click \"New Profile\" to create one."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "field"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "fields"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "(Custom)"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Invalid JSON file"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Detection failed. Please try again."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Fields detected!"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "No fields detected"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Close"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Import"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Back to List"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Profile Name"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Enter profile name..."
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Detect available fields from sample"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Available Fields"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Drag fields to the right to enable them"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Enabled Fields"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "These fields will be extracted from documents"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Save Profile"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Custom Label:"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "OK"
+msgstr ""
+
+#: includes/class-gravity-extract-addon.php
+msgid "Cancel"
+msgstr ""
+
+#: includes/class-gf-field-gravity-extract.php
+msgid "Max size: %s. Allowed types: %s"
+msgstr ""
+
+#: includes/class-gf-field-gravity-extract.php
+msgid "Drop your document image here"
+msgstr ""
+
+#: includes/class-gf-field-gravity-extract.php
+msgid "or click to browse"
+msgstr ""
+
+#: includes/class-gf-field-gravity-extract.php
+msgid "Remove"
+msgstr ""
+
+#: includes/class-gf-field-gravity-extract.php
+msgid "View Image"
+msgstr ""
+
+#: includes/class-gf-field-gravity-extract.php
+msgid "This field is required."
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Profile slug is required"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Profile not found"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Profile name is required"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "At least one field must be enabled"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Profile saved successfully"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Failed to save profile"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Profile deleted successfully"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Failed to delete profile"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "New profile name is required"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Profile duplicated successfully"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Failed to duplicate profile"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "No import data provided"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Invalid profile format"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Profile imported successfully"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Failed to import profile"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Failed to read uploaded file"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "Detected %d fields from document"
+msgstr ""
+
+#: includes/class-mapping-profiles-manager.php
+msgid "No fields detected from document"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "Model is required"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "Image is required"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "API returned status %d"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "Failed to parse API response"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "Invalid API response"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "AI model is required"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "Image data is required"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "No fields to extract"
+msgstr ""
+
+#: includes/class-poe-api-service.php
+msgid "Could not parse AI response"
+msgstr ""
