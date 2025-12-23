@@ -1,10 +1,13 @@
 <?php
 /**
  * Plugin Name: Gravity Extract
+ * Plugin URI: https://github.com/guilamu/gravity-extract
  * Description: Adds a new upload field to Gravity Forms that uses AI to extract invoice information from images.
  * Version: 1.0.0
- * Author: Gravity Extract
+ * Author: Guilamu
+ * Author URI: https://github.com/guilamu
  * Text Domain: gravity-extract
+ * Domain Path: /languages
  * Requires PHP: 7.4
  * Requires at least: 5.8
  */
