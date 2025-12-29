@@ -376,6 +376,7 @@ Contributions are welcome! Please:
 ---
 
 <p align="center">
-  Made with ❤️ for the WordPress community
+  Made with love for the WordPress community
 </p>
+
 
