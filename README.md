@@ -98,8 +98,6 @@ unzip gravity-extract.zip
 3. Create a new API key
 4. Copy the key to use in the plugin settings
 
-> 💡 The free POE API tier includes generous usage limits for personal and small business use.
-
 ### 2. Form Settings
 Configure the API key and AI model **per form** in the Gravity Forms editor:
 
@@ -380,3 +378,4 @@ Contributions are welcome! Please:
 <p align="center">
   Made with ❤️ for the WordPress community
 </p>
+
