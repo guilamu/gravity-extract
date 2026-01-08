@@ -33,18 +33,23 @@ class Gravity_Extract_POE_API
         $cached_models = get_transient($cache_key);
 
         if ($cached_models !== false) {
-            error_log('Gravity Extract POE API: Using cached models');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract POE API: Using cached models');
+            }
             return $cached_models;
         }
 
-        error_log('Gravity Extract POE API: Calling ' . self::API_BASE_URL . '/v1/models');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract POE API: Calling ' . self::API_BASE_URL . '/v1/models');
+        }
 
         $response = wp_remote_get(self::API_BASE_URL . '/v1/models', array(
             'headers' => array(
                 'Authorization' => 'Bearer ' . $api_key,
             ),
             'timeout' => 30,
-            'sslverify' => false,
+            'timeout' => 30,
+            'sslverify' => true,
         ));
 
         if (is_wp_error($response)) {
@@ -53,7 +58,9 @@ class Gravity_Extract_POE_API
         }
 
         $status_code = wp_remote_retrieve_response_code($response);
-        error_log('Gravity Extract POE API: Response status ' . $status_code);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract POE API: Response status ' . $status_code);
+        }
 
         if ($status_code !== 200) {
             $error_body = wp_remote_retrieve_body($response);
@@ -62,18 +69,24 @@ class Gravity_Extract_POE_API
         }
 
         $raw_body = wp_remote_retrieve_body($response);
-        error_log('Gravity Extract POE API: Response length ' . strlen($raw_body) . ' bytes');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract POE API: Response length ' . strlen($raw_body) . ' bytes');
+        }
 
         $body = json_decode($raw_body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log('Gravity Extract POE API: JSON decode error - ' . json_last_error_msg());
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract POE API: JSON decode error - ' . json_last_error_msg());
+            }
             return new WP_Error('json_error', __('Failed to parse API response', 'gravity-extract'));
         }
 
         $models = array();
         $total_models = count($body['data'] ?? array());
-        error_log('Gravity Extract POE API: Total models in response: ' . $total_models);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract POE API: Total models in response: ' . $total_models);
+        }
 
         foreach ($body['data'] ?? array() as $model) {
             $input_modalities = $model['architecture']['input_modalities'] ?? array();
@@ -87,7 +100,9 @@ class Gravity_Extract_POE_API
             }
         }
 
-        error_log('Gravity Extract POE API: Found ' . count($models) . ' image-capable models');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract POE API: Found ' . count($models) . ' image-capable models');
+        }
 
         // Sort alphabetically by name
         usort($models, function ($a, $b) {
@@ -178,7 +193,7 @@ class Gravity_Extract_POE_API
             ),
             'body' => wp_json_encode($payload),
             'timeout' => 60,
-            'sslverify' => false,
+            'sslverify' => true,
         ));
 
         if (is_wp_error($response)) {
@@ -188,7 +203,9 @@ class Gravity_Extract_POE_API
         $status_code = wp_remote_retrieve_response_code($response);
         if ($status_code !== 200) {
             $body = wp_remote_retrieve_body($response);
-            error_log('Gravity Extract POE API Error: ' . $body);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract POE API Error: ' . $body);
+            }
             return new WP_Error('api_error', sprintf(__('API returned status %d', 'gravity-extract'), $status_code));
         }
 
@@ -438,7 +455,9 @@ JSON:";
             ),
         );
 
-        error_log('Gravity Extract: Calling POE API with model: ' . $model);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: Calling POE API with model: ' . $model);
+        }
 
         $payload = array(
             'model' => $model,
@@ -459,7 +478,7 @@ JSON:";
             ),
             'body' => wp_json_encode($payload),
             'timeout' => 90,
-            'sslverify' => false,
+            'sslverify' => true,
         ));
 
         if (is_wp_error($response)) {
@@ -469,7 +488,9 @@ JSON:";
         $status_code = wp_remote_retrieve_response_code($response);
         if ($status_code !== 200) {
             $body = wp_remote_retrieve_body($response);
-            error_log('Gravity Extract POE API Error: ' . $body);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract POE API Error: ' . $body);
+            }
             return new WP_Error('api_error', sprintf(__('API returned status %d', 'gravity-extract'), $status_code));
         }
 
@@ -555,7 +576,9 @@ JSON:";
             }
 
             // Log for debugging
-            error_log('Gravity Extract: Automap failed to parse JSON. Content: ' . substr($content, 0, 500));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Automap failed to parse JSON. Content: ' . substr($content, 0, 500));
+            }
         }
 
         return new WP_Error('invalid_automap_response', 'Could not parse automap response');
@@ -670,7 +693,9 @@ JSON:";
             return new WP_Error('no_image', __('Image data is required', 'gravity-extract'));
         }
 
-        error_log('Gravity Extract: Detecting document fields with AI');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: Detecting document fields with AI');
+        }
 
         // Build prompt for field discovery
         $prompt = "You are an expert at analyzing documents and extracting data fields.
@@ -731,7 +756,7 @@ Return ONLY a valid JSON array with NO additional text or markdown:
             ),
             'body' => wp_json_encode($payload),
             'timeout' => 90,
-            'sslverify' => false,
+            'sslverify' => true,
         ));
 
         if (is_wp_error($response)) {
@@ -741,7 +766,9 @@ Return ONLY a valid JSON array with NO additional text or markdown:
         $status_code = wp_remote_retrieve_response_code($response);
         if ($status_code !== 200) {
             $body = wp_remote_retrieve_body($response);
-            error_log('Gravity Extract POE API Error: ' . $body);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract POE API Error: ' . $body);
+            }
             return new WP_Error('api_error', sprintf(__('API returned status %d', 'gravity-extract'), $status_code));
         }
 
@@ -755,7 +782,9 @@ Return ONLY a valid JSON array with NO additional text or markdown:
             $detected_fields = json_decode($content_clean, true);
 
             if ($detected_fields && is_array($detected_fields)) {
-                error_log('Gravity Extract: Detected ' . count($detected_fields) . ' fields from document');
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Gravity Extract: Detected ' . count($detected_fields) . ' fields from document');
+                }
                 return array(
                     'success' => true,
                     'fields' => $detected_fields,
@@ -766,7 +795,9 @@ Return ONLY a valid JSON array with NO additional text or markdown:
             if (preg_match('/\[.*\]/s', $content, $matches)) {
                 $detected_fields = json_decode($matches[0], true);
                 if ($detected_fields && is_array($detected_fields)) {
-                    error_log('Gravity Extract: Detected ' . count($detected_fields) . ' fields from document (extracted from text)');
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('Gravity Extract: Detected ' . count($detected_fields) . ' fields from document (extracted from text)');
+                    }
                     return array(
                         'success' => true,
                         'fields' => $detected_fields,
@@ -774,7 +805,9 @@ Return ONLY a valid JSON array with NO additional text or markdown:
                 }
             }
 
-            error_log('Gravity Extract: Could not parse field detection response: ' . substr($content, 0, 500));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Could not parse field detection response: ' . substr($content, 0, 500));
+            }
             return new WP_Error('parse_error', __('Could not parse AI response', 'gravity-extract'));
         }
 

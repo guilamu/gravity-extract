@@ -497,7 +497,9 @@ class Gravity_Extract_Mapping_Profiles_Manager
 
         // Convert PDF to JPEG if necessary
         if ($mime_type === 'application/pdf') {
-            error_log('Gravity Extract: Detect - PDF detected, converting to JPEG');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Detect - PDF detected, converting to JPEG');
+            }
             $jpeg_path = $this->convert_pdf_to_jpeg_static($file_path);
 
             if ($jpeg_path) {
@@ -555,7 +557,9 @@ class Gravity_Extract_Mapping_Profiles_Manager
     private function convert_pdf_to_jpeg_static($pdf_path, $max_pages = 10)
     {
         if (!extension_loaded('imagick')) {
-            error_log('Gravity Extract: Imagick extension not available for PDF conversion');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Imagick extension not available for PDF conversion');
+            }
             return false;
         }
 
@@ -615,7 +619,9 @@ class Gravity_Extract_Mapping_Profiles_Manager
             @unlink($pdf_path);
             return $jpeg_path;
         } catch (\Exception $e) {
-            error_log('Gravity Extract: PDF conversion failed - ' . $e->getMessage());
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: PDF conversion failed - ' . $e->getMessage());
+            }
             return false;
         }
     }

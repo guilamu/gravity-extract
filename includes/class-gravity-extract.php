@@ -328,9 +328,10 @@ class Gravity_Extract
     public function ajax_get_models()
     {
         check_ajax_referer('gravity_extract_admin', 'nonce');
-
         if (!current_user_can('manage_options')) {
-            error_log('Gravity Extract: Unauthorized access attempt to get_models');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Unauthorized access attempt to get_models');
+            }
             wp_send_json_error(array('message' => __('Unauthorized', 'gravity-extract')));
             return;
         }
@@ -338,22 +339,30 @@ class Gravity_Extract
         $api_key = sanitize_text_field($_POST['api_key'] ?? '');
 
         if (empty($api_key)) {
-            error_log('Gravity Extract: No API key provided');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: No API key provided');
+            }
             wp_send_json_error(array('message' => __('API key is required', 'gravity-extract')));
             return;
         }
 
-        error_log('Gravity Extract: Fetching models with API key: ' . substr($api_key, 0, 10) . '...');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: Fetching models with API key: ' . substr($api_key, 0, 10) . '...');
+        }
 
         $models = Gravity_Extract_POE_API::get_models($api_key);
 
         if (is_wp_error($models)) {
-            error_log('Gravity Extract: Error fetching models: ' . $models->get_error_message());
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Error fetching models: ' . $models->get_error_message());
+            }
             wp_send_json_error(array('message' => $models->get_error_message()));
             return;
         }
 
-        error_log('Gravity Extract: Found ' . count($models) . ' image-capable models');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: Found ' . count($models) . ' image-capable models');
+        }
         wp_send_json_success(array('models' => $models));
     }
 
@@ -368,8 +377,10 @@ class Gravity_Extract
         $field_id = intval($_POST['field_id'] ?? 0);
         $image_base64 = $_POST['image_base64'] ?? '';
 
-        error_log('Gravity Extract: Starting AJAX image analysis. Form: ' . $form_id . ', Field: ' . $field_id);
-        error_log('Gravity Extract: Image data length: ' . strlen($image_base64));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: Starting AJAX image analysis. Form: ' . $form_id . ', Field: ' . $field_id);
+            error_log('Gravity Extract: Image data length: ' . strlen($image_base64));
+        }
 
         if (empty($form_id) || empty($field_id) || empty($image_base64)) {
             wp_send_json_error(array('message' => __('Missing required parameters', 'gravity-extract')));
@@ -445,14 +456,19 @@ class Gravity_Extract
      */
     public function ajax_upload_file()
     {
-        error_log('Gravity Extract: ajax_upload_file called');
-        error_log('Gravity Extract: $_FILES: ' . print_r($_FILES, true));
-        error_log('Gravity Extract: $_POST: ' . print_r($_POST, true));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: ajax_upload_file called');
+            // Avoid logging full $_POST or $_FILES in production for security/performance
+            // error_log('Gravity Extract: $_FILES: ' . print_r($_FILES, true));
+            // error_log('Gravity Extract: $_POST: ' . print_r($_POST, true));
+        }
 
         check_ajax_referer('gravity_extract_frontend', 'nonce');
 
         if (empty($_FILES['file'])) {
-            error_log('Gravity Extract: No file in $_FILES');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: No file in $_FILES');
+            }
             wp_send_json_error(array('message' => __('No file uploaded', 'gravity-extract')));
             return;
         }
@@ -467,21 +483,29 @@ class Gravity_Extract
 
         // Upload file
         $file = $_FILES['file'];
-        error_log('Gravity Extract: Attempting to upload file: ' . $file['name']);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: Attempting to upload file: ' . $file['name']);
+        }
         $upload = wp_handle_upload($file, array('test_form' => false));
 
         if (isset($upload['error'])) {
-            error_log('Gravity Extract: Upload error: ' . $upload['error']);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Upload error: ' . $upload['error']);
+            }
             wp_send_json_error(array('message' => $upload['error']));
             return;
         }
 
-        error_log('Gravity Extract: File uploaded successfully to: ' . $upload['url']);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: File uploaded successfully to: ' . $upload['url']);
+        }
 
         // Convert PDF to JPEG if necessary
         $converted_from_pdf = false;
         if ($upload['type'] === 'application/pdf') {
-            error_log('Gravity Extract: PDF detected, converting to JPEG');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: PDF detected, converting to JPEG');
+            }
             $jpeg_path = $this->convert_pdf_to_jpeg($upload['file']);
 
             if ($jpeg_path) {
@@ -490,9 +514,13 @@ class Gravity_Extract
                 $upload['url'] = str_replace('.pdf', '.jpg', $upload['url']);
                 $upload['type'] = 'image/jpeg';
                 $converted_from_pdf = true;
-                error_log('Gravity Extract: PDF conversion successful, now using JPEG: ' . $upload['url']);
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Gravity Extract: PDF conversion successful, now using JPEG: ' . $upload['url']);
+                }
             } else {
-                error_log('Gravity Extract: PDF conversion failed');
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Gravity Extract: PDF conversion failed');
+                }
                 wp_send_json_error(array('message' => __('PDF conversion failed. Please try uploading an image instead.', 'gravity-extract')));
             }
         }
@@ -512,7 +540,9 @@ class Gravity_Extract
 
                 // Only proceed with analysis if there are mappings configured
                 if ($field && !empty($mappings)) {
-                    error_log('Gravity Extract: Field has mappings configured, analyzing image after upload');
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('Gravity Extract: Field has mappings configured, analyzing image after upload');
+                    }
 
                     // Get API settings from form-level settings
                     $form_settings = Gravity_Extract_Addon::get_form_extract_settings($form_id);
@@ -555,13 +585,17 @@ class Gravity_Extract
                         @unlink($optimized_file);
                     }
 
-                    error_log('Gravity Extract: Calling POE API for analysis after upload. Image data length: ' . strlen($image_base64));
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('Gravity Extract: Calling POE API for analysis after upload. Image data length: ' . strlen($image_base64));
+                    }
 
                     // Call POE API with profile-specific extraction
                     $result = Gravity_Extract_POE_API::analyze_image_with_keys($api_key, $model, $image_base64, $profile, $keys_to_extract);
 
                     if (is_wp_error($result)) {
-                        error_log('Gravity Extract: Error during analysis after upload: ' . $result->get_error_message());
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log('Gravity Extract: Error during analysis after upload: ' . $result->get_error_message());
+                        }
                         wp_send_json_error(array('message' => $result->get_error_message()));
                     }
 
@@ -639,8 +673,13 @@ class Gravity_Extract
      */
     private function optimize_image_for_analysis($file_path)
     {
+        // Increase memory limit for image processing
+        @ini_set('memory_limit', '512M');
+
         if (!file_exists($file_path)) {
-            error_log('Gravity Extract: Optimize - file not found: ' . $file_path);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Optimize - file not found: ' . $file_path);
+            }
             return false;
         }
 
@@ -661,12 +700,16 @@ class Gravity_Extract
                 }
                 break;
             default:
-                error_log('Gravity Extract: Optimize - unsupported format: ' . $mime);
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Gravity Extract: Optimize - unsupported format: ' . $mime);
+                }
                 return false;
         }
 
         if (!$image) {
-            error_log('Gravity Extract: Optimize - failed to load image');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Optimize - failed to load image');
+            }
             return false;
         }
 
@@ -699,17 +742,21 @@ class Gravity_Extract
         imagedestroy($resized);
 
         if ($success) {
-            error_log(sprintf(
-                'Gravity Extract: Image optimized - %dx%d -> %dx%d, JPEG 60%%',
-                $width,
-                $height,
-                $new_width,
-                $new_height
-            ));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf(
+                    'Gravity Extract: Image optimized - %dx%d -> %dx%d, JPEG 60%%',
+                    $width,
+                    $height,
+                    $new_width,
+                    $new_height
+                ));
+            }
             return $temp_file;
         }
 
-        error_log('Gravity Extract: Optimize - failed to save optimized image');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Gravity Extract: Optimize - failed to save optimized image');
+        }
         return false;
     }
 
@@ -723,8 +770,13 @@ class Gravity_Extract
      */
     private function convert_pdf_to_jpeg($pdf_path, $max_pages = 10)
     {
+        // Increase memory limit for PDF processing
+        @ini_set('memory_limit', '512M');
+
         if (!extension_loaded('imagick')) {
-            error_log('Gravity Extract: Imagick extension not available for PDF conversion');
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Gravity Extract: Imagick extension not available for PDF conversion');
+            }
             return false;
         }
 
@@ -737,11 +789,16 @@ class Gravity_Extract
             $imagick->clear();
             $imagick->destroy();
 
-            error_log(sprintf('Gravity Extract: PDF has %d pages', $total_pages));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('Gravity Extract: PDF has %d pages', $total_pages));
+            }
 
             // Limit pages if needed
             $pages_to_process = $max_pages > 0 ? min($total_pages, $max_pages) : $total_pages;
-            error_log(sprintf('Gravity Extract: Processing %d pages', $pages_to_process));
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('Gravity Extract: Processing %d pages', $pages_to_process));
+            }
 
             // Convert each page to an image
             $page_images = array();
@@ -768,7 +825,9 @@ class Gravity_Extract
                     'height' => $height
                 );
 
-                error_log(sprintf('Gravity Extract: Page %d converted - %dx%d', $i + 1, $width, $height));
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log(sprintf('Gravity Extract: Page %d converted - %dx%d', $i + 1, $width, $height));
+                }
             }
 
             // Create final merged image
