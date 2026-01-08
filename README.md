@@ -71,6 +71,11 @@ add_filter('gravity_extract_prompt', function($prompt) {
 
 ## Changelog
 
+### 1.0.2
+-   **Security:** Fixed SSL verification issue in POE API service
+-   **Performance:** Increased memory limit for image processing
+-   **Improvement:** Cleaned up debug logs for better production hygiene
+
 ### 1.0.1
 -   **New:** Added GitHub auto-update support
 -   **Improved:** Updated README documentation structure
